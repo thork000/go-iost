@@ -36,23 +36,23 @@ type CacheVerifier struct {
 	Verifier
 }
 
-func balanceOfSender(sender vm.IOSTAccount, pool state.Pool) float64 {
+func balanceOfSender(sender vm.IOSTAccount, pool state.Pool) int64 {
 	val0, err := pool.GetHM("iost", state.Key(sender))
 	if err != nil {
 		panic(err)
 	}
-	val, ok := val0.(*state.VFloat)
+	val, ok := val0.(*state.VToken)
 	if val0 == state.VNil {
 		return 0
 	} else if !ok {
-		panic(fmt.Errorf("pool type error: should VFloat, acture %v; in iost.%v",
+		panic(fmt.Errorf("pool type error: should *VToken, acture %v; in iost.%v",
 			reflect.TypeOf(val0).String(), string(sender)))
 	}
-	return val.ToFloat64()
+	return val.ToInt64()
 }
 
-func setBalanceOfSender(sender vm.IOSTAccount, pool state.Pool, amount float64) {
-	pool.PutHM("iost", state.Key(sender), state.MakeVFloat(amount))
+func setBalanceOfSender(sender vm.IOSTAccount, pool state.Pool, ra int64) {
+	pool.PutHM("iost", state.Key(sender), state.MakeVToken(ra))
 }
 
 // 验证contract，返回pool是包含了该contract的pool。传入时要注意是传入pool还是pool.copy()
@@ -62,7 +62,7 @@ func (cv *CacheVerifier) VerifyContract(contract vm.Contract, pool state.Pool) (
 	sender := contract.Info().Publisher
 	if contract.Info().Price != 0 {
 		bos := balanceOfSender(sender, pool)
-		if bos < float64(contract.Info().GasLimit)*contract.Info().Price {
+		if bos < contract.Info().GasLimit*vm.LiteralToToken(contract.Info().Price) {
 			return pool, fmt.Errorf("balance not enough: sender:%v balance:%f\n", string(sender), bos)
 		}
 	}
@@ -79,11 +79,11 @@ func (cv *CacheVerifier) VerifyContract(contract vm.Contract, pool state.Pool) (
 
 		bos2 := balanceOfSender(sender, pool)
 
-		if gas > uint64(contract.Info().GasLimit) { // TODO 不应该发生的分支
+		if gas > uint64(contract.Info().GasLimit) { // UNREACHABLE
 			panic("gas overflow!")
 		}
 
-		bos2 -= float64(gas) * contract.Info().Price
+		bos2 -= int64(gas) * vm.LiteralToToken(contract.Info().Price)
 		if bos2 < 0 {
 			return pool, fmt.Errorf("can not afford gas")
 		}

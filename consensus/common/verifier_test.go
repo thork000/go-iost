@@ -28,7 +28,7 @@ func TestStdTxsVerifier(t *testing.T) {
 
 	txs := make([]*tx.Tx, 0)
 
-	pool.PutHM("iost", "a", state.MakeVFloat(100000))
+	pool.PutHM("iost", "a", state.MakeVToken(100000))
 
 	for j := 0; j < 100; j++ {
 		lc := lua.NewContract(vm.ContractInfo{Prefix: strconv.Itoa(j), GasLimit: 10000, Price: 1, Publisher: vm.IOSTAccount("a")}, code, main)
@@ -69,7 +69,7 @@ func TestStdCacheVerifier(t *testing.T) {
 				return "success"
 			end`
 
-		pool.PutHM("iost", "a", state.MakeVFloat(100000))
+		pool.PutHM("iost", "a", state.MakeVToken(100000))
 
 		for j := 0; j < 90; j++ {
 			lc := lua.NewContract(vm.ContractInfo{Prefix: strconv.Itoa(j), GasLimit: 10000, Price: 1, Publisher: vm.IOSTAccount("a")}, code, main)
@@ -100,7 +100,7 @@ func TestStdCacheVerifier(t *testing.T) {
 				return "success"
 			end`
 
-		pool.PutHM("iost", "a", state.MakeVFloat(100000))
+		pool.PutHM("iost", "a", state.MakeVToken(100000))
 
 		lc := lua.NewContract(vm.ContractInfo{Prefix: "ahaha", GasLimit: 10000, Price: 1, Publisher: vm.IOSTAccount("a")}, code, main)
 		txx := tx.NewTx(1, &lc)
@@ -110,13 +110,13 @@ func TestStdCacheVerifier(t *testing.T) {
 		balance, err := pool.GetHM("iost", "a")
 		So(err, ShouldBeNil)
 
-		So(balance.(*state.VFloat).ToFloat64() > 90000, ShouldBeTrue)
+		So(balance.(*state.VToken).ToInt64() > 90000, ShouldBeTrue)
 
 		err = StdCacheVerifier(&txx, pool, &vm.Context{})
 		So(err, ShouldBeNil)
 		balance, err = pool.GetHM("iost", "a")
 		So(err, ShouldBeNil)
-		So(balance.(*state.VFloat).ToFloat64() < 90000, ShouldBeTrue)
+		So(balance.(*state.VToken).ToInt64() < 90000, ShouldBeTrue)
 	})
 }
 
@@ -164,7 +164,7 @@ func BenchmarkStdCacheVerifier(b *testing.B) {
 				return "success"
 			end`
 
-	pool.PutHM("iost", "a", state.MakeVFloat(1000000000))
+	pool.PutHM("iost", "a", state.MakeVToken(1000000000))
 
 	lc := lua.NewContract(vm.ContractInfo{Prefix: "ahaha", GasLimit: 10000, Price: 1, Publisher: vm.IOSTAccount("a")}, code, main)
 	txx := tx.NewTx(123, &lc)

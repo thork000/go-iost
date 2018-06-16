@@ -138,8 +138,8 @@ func TestContext(t *testing.T) {
 		mmdb := state.NewDatabase(mdb)
 		pool := state.NewPool(mmdb)
 
-		pool.PutHM("iost", "payer", state.MakeVFloat(10000))
-		pool.PutHM("iost", "receiver", state.MakeVFloat(10000))
+		pool.PutHM("iost", "payer", state.MakeVTokenByLiteral(10000))
+		pool.PutHM("iost", "receiver", state.MakeVTokenByLiteral(10000))
 
 		code1 := `function main()
 	return Call("con2", "pay", "payer")
@@ -168,6 +168,6 @@ end`
 		So(err, ShouldBeNil)
 		So(gas, ShouldEqual, 1013)
 		pb, _ := pool.GetHM("iost", "payer")
-		So(pb.(*state.VFloat).ToFloat64(), ShouldEqual, 9990)
+		So(pb.(*state.VToken).ToInt64(), ShouldEqual, 9990000000000)
 	})
 }

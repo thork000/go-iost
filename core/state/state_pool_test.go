@@ -75,13 +75,13 @@ func TestPoolImpl(t *testing.T) {
 			So(v4, ShouldEqual, v2)
 
 			sp3 := NewPool(db)
-			sp3.PutHM(Key("iost"), Key("a"), MakeVFloat(1000000))
-			sp3.PutHM(Key("iost"), Key("b"), MakeVFloat(1000000))
+			sp3.PutHM(Key("iost"), Key("a"), MakeVToken(1000000))
+			sp3.PutHM(Key("iost"), Key("b"), MakeVToken(1000000))
 			val0, _ := sp3.GetHM("iost", "a")
-			val1 := MakeVFloat(val0.(*VFloat).ToFloat64() - 50)
+			val1 := MakeVToken(val0.(*VToken).ToInt64() - 50)
 			sp3.PutHM("iost", "a", val1)
 			val2, _ := sp3.GetHM("iost", "b")
-			So(val2.(*VFloat).ToFloat64(), ShouldEqual, 1000000)
+			So(val2.(*VToken).ToInt64(), ShouldEqual, 1000000)
 
 		})
 

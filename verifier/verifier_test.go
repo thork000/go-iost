@@ -33,8 +33,8 @@ func TestGenesisVerify(t *testing.T) {
 			pool.EXPECT().Copy().Return(pool)
 			contract := vm_mock.NewMockContract(mockCtl)
 			contract.EXPECT().Code().Return(`
--- @PutHM iost abc f10000
--- @PutHM iost def f1000
+-- @PutHM iost abc t10000
+-- @PutHM iost def t1000
 -- @Put hello sworld
 `)
 			_, err := ParseGenesis(contract, pool)
@@ -73,7 +73,7 @@ func TestCacheVerifier(t *testing.T) {
 				f2 = field
 				v2 = value
 			})
-			v3 := state.MakeVFloat(float64(10000))
+			v3 := state.MakeVTokenByLiteral(float64(10000))
 			pool.EXPECT().GetHM(gomock.Any(), gomock.Any()).AnyTimes().Return(v3, nil)
 			pool.EXPECT().Copy().AnyTimes().Return(pool)
 			main := lua.NewMethod(vm.Public, "main", 0, 1)
@@ -91,8 +91,8 @@ end`
 			So(v.EncodeString(), ShouldEqual, "f3.140000000000000e+00")
 			So(string(k2), ShouldEqual, "iost")
 			So(string(f2), ShouldEqual, "ahaha")
-			vv := v2.(*state.VFloat)
-			So(vv.ToFloat64(), ShouldEqual, float64(10000-2010))
+			vv := v2.(*state.VToken)
+			So(vv.ToInt64(), ShouldEqual, 7990000000000)
 		})
 		Convey("Verify free contract", func() {
 			mockCtl := gomock.NewController(t)
@@ -213,8 +213,8 @@ end`
 		}
 		sdb := state.NewDatabase(dbx)
 		pool := state.NewPool(sdb)
-		pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVFloat(1000000))
-		pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVFloat(1000000))
+		pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVTokenByLiteral(1000000))
+		pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVTokenByLiteral(1000000))
 		//fmt.Println(pool.GetHM("iost", "b"))
 		var pool2 state.Pool
 
@@ -224,8 +224,8 @@ end`
 		aa, err := pool2.GetHM("iost", "a")
 		ba, err := pool2.GetHM("iost", "b")
 		So(err, ShouldBeNil)
-		So(aa.(*state.VFloat).ToFloat64(), ShouldEqual, 999944)
-		So(ba.(*state.VFloat).ToFloat64(), ShouldEqual, 1000050)
+		So(aa.(*state.VToken).ToInt64(), ShouldEqual, 999944000000000)
+		So(ba.(*state.VToken).ToInt64(), ShouldEqual, 1000050000000000)
 	})
 
 }
@@ -236,35 +236,28 @@ func TestCacheVerifier_Multiple(t *testing.T) {
 		code := `function main()
 	Transfer("a", "b", 50)
 end`
-		lc := lua.NewContract(vm.ContractInfo{Prefix: "test", GasLimit: 10000, Price: 1, Publisher: vm.IOSTAccount("a")}, code, main)
+		lc := lua.NewContract(vm.ContractInfo{Prefix: "test", GasLimit: 10000, Price: 0.0001, Publisher: vm.IOSTAccount("a")}, code, main)
 
 		dbx, err := db.DatabaseFactory("redis")
-		if err != nil {
-			panic(err.Error())
-		}
+		So(err, ShouldBeNil)
 		sdb := state.NewDatabase(dbx)
 		pool := state.NewPool(sdb)
-		pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVFloat(1000000))
-		pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVFloat(1000000))
+		pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVTokenByLiteral(1000000))
+		pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVTokenByLiteral(1000000))
 		//fmt.Println(pool.GetHM("iost", "b"))
 		var pool2 state.Pool
 
 		cv := NewCacheVerifier()
 		pool2, err = cv.VerifyContract(&lc, pool)
-		if err != nil {
-			panic(err)
-		}
+		So(err, ShouldBeNil)
 		pool3, err := cv.VerifyContract(&lc, pool2)
-		if err != nil {
-			panic(err)
-		}
+		So(err, ShouldBeNil)
 		_, err = pool2.GetHM("iost", "a")
 		ba, err := pool2.GetHM("iost", "b")
-
 		aa2, err := pool3.GetHM("iost", "a")
 		So(err, ShouldBeNil)
-		So(aa2.(*state.VFloat).ToFloat64(), ShouldEqual, 999888)
-		So(ba.(*state.VFloat).ToFloat64(), ShouldEqual, 1000100)
+		So(aa2.(*state.VToken).ToInt64(), ShouldEqual, 999899998800000)
+		So(ba.(*state.VToken).ToInt64(), ShouldEqual, 1000100000000000)
 	})
 
 }
@@ -283,8 +276,8 @@ end`
 	}
 	sdb := state.NewDatabase(dbx)
 	pool := state.NewPool(sdb)
-	pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVFloat(1000000))
-	pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVFloat(1000000))
+	pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVToken(1000000))
+	pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVToken(1000000))
 
 	var pool2 state.Pool
 
@@ -320,8 +313,8 @@ end`
 	}
 	sdb := state.NewDatabase(dbx)
 	pool := state.NewPool(sdb)
-	pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVFloat(1000000))
-	pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVFloat(1000000))
+	pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVToken(1000000))
+	pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVToken(1000000))
 
 	var pool2 state.Pool
 

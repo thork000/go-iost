@@ -13,14 +13,15 @@ func TestTransfer(t *testing.T) {
 		db, _ := db.DatabaseFactory("redis")
 		mdb := state.NewDatabase(db)
 		pool := state.NewPool(mdb)
-		pool.PutHM("iost", "a", state.MakeVFloat(100))
-		pool.PutHM("iost", "b", state.MakeVFloat(100))
+		pool.PutHM("iost", "a", state.MakeVTokenByLiteral(100))
+		pool.PutHM("iost", "b", state.MakeVTokenByLiteral(100))
 
-		Transfer(pool, "a", "b", 20)
+		ans := Transfer(pool, "a", "b", 20)
+		So(ans, ShouldBeTrue)
 		aa, _ := pool.GetHM("iost", "a")
-		So(aa.(*state.VFloat).ToFloat64(), ShouldEqual, 80)
+		So(aa.(*state.VToken).ToInt64(), ShouldEqual, 80000000000)
 		bb, _ := pool.GetHM("iost", "b")
-		So(bb.(*state.VFloat).ToFloat64(), ShouldEqual, 120)
+		So(bb.(*state.VToken).ToInt64(), ShouldEqual, 120000000000)
 
 	})
 }

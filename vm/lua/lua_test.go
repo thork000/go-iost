@@ -52,8 +52,8 @@ end`,
 			sdb := state.NewDatabase(db)
 			pool := state.NewPool(sdb)
 
-			pool.PutHM("iost", "a", state.MakeVFloat(100))
-			pool.PutHM("iost", "b", state.MakeVFloat(100))
+			pool.PutHM("iost", "a", state.MakeVTokenByLiteral(100))
+			pool.PutHM("iost", "b", state.MakeVTokenByLiteral(100))
 
 			main := NewMethod(vm.Public, "main", 0, 1)
 			lc := Contract{
@@ -145,8 +145,8 @@ end`,
 		}
 		sdb := state.NewDatabase(db)
 		pool := state.NewPool(sdb)
-		pool.PutHM("iost", "a", state.MakeVFloat(5000))
-		pool.PutHM("iost", "b", state.MakeVFloat(1000))
+		pool.PutHM("iost", "a", state.MakeVTokenByLiteral(5000))
+		pool.PutHM("iost", "b", state.MakeVTokenByLiteral(1000))
 
 		lvm.Prepare(&lc, nil)
 		lvm.Start()
@@ -158,8 +158,8 @@ end`,
 		ab, err := pool.GetHM("iost", "a")
 		bb, err := pool.GetHM("iost", "b")
 		So(err, ShouldBeNil)
-		So(ab.(*state.VFloat).ToFloat64(), ShouldEqual, 4950)
-		So(bb.(*state.VFloat).ToFloat64(), ShouldEqual, 1050)
+		So(ab.(*state.VToken).ToInt64(), ShouldEqual, 4950000000000)
+		So(bb.(*state.VToken).ToInt64(), ShouldEqual, 1050000000000)
 
 	})
 }
@@ -293,8 +293,8 @@ end`,
 	}
 	sdb := state.NewDatabase(db)
 	pool := state.NewPool(sdb)
-	pool.PutHM("iost", "a", state.MakeVFloat(5000))
-	pool.PutHM("iost", "b", state.MakeVFloat(50))
+	pool.PutHM("iost", "a", state.MakeVToken(5000))
+	pool.PutHM("iost", "b", state.MakeVToken(50))
 
 	for i := 0; i < b.N; i++ {
 		lvm.Prepare(&lc, nil)
@@ -398,8 +398,8 @@ end`,
 		}
 		sdb := state.NewDatabase(db)
 		pool := state.NewPool(sdb)
-		pool.PutHM("iost", "a", state.MakeVFloat(5000))
-		pool.PutHM("iost", "b", state.MakeVFloat(1000))
+		pool.PutHM("iost", "a", state.MakeVTokenByLiteral(5000))
+		pool.PutHM("iost", "b", state.MakeVTokenByLiteral(1000))
 
 		lvm.Prepare(&lc, nil)
 		lvm.Start()
@@ -416,8 +416,8 @@ end`,
 		ab, err := pool.GetHM("iost", "a")
 		bb, err := pool.GetHM("iost", "b")
 		So(err, ShouldBeNil)
-		So(ab.(*state.VFloat).ToFloat64(), ShouldEqual, 4950)
-		So(bb.(*state.VFloat).ToFloat64(), ShouldEqual, 1050)
+		So(ab.(*state.VToken).ToInt64(), ShouldEqual, 4950000000000)
+		So(bb.(*state.VToken).ToInt64(), ShouldEqual, 1050000000000)
 
 	})
 }

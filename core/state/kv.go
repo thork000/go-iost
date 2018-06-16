@@ -48,6 +48,7 @@ const (
 	Bool
 	Int
 	Float
+	Token
 	String
 	Bytes
 	Array // fix length array
@@ -80,7 +81,12 @@ func ParseValue(s string) (Value, error) {
 			return nil, err
 		}
 		return MakeVFloat(f), nil
-
+	case strings.HasPrefix(s, "t"):
+		f, err := strconv.ParseInt(s1, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return MakeVToken(f), nil
 	case strings.HasPrefix(s, "b"):
 		b, err := base64.StdEncoding.DecodeString(s1)
 		if err != nil {
@@ -215,6 +221,37 @@ var VTrue = &VBool{
 
 var VFalse = &VBool{
 	val: false,
+}
+
+type VToken struct {
+	val int64
+}
+
+func MakeVToken(i int64) *VToken {
+	return &VToken{
+		val: i,
+	}
+}
+func MakeVTokenByLiteral(f float64) *VToken {
+	if f > 2.1e10 || f < -2.1e10 {
+		return nil
+	}
+	return &VToken{
+		val: int64(f * 1e9),
+	}
+}
+
+func (v *VToken) Type() Type {
+	return Token
+}
+func (v *VToken) EncodeString() string {
+	return "t" + strconv.FormatInt(v.val, 10)
+}
+func (v *VToken) ToInt64() int64 {
+	return v.val
+}
+func (v *VToken) ToLiteral() float64 {
+	return float64(v.val) / 1e9
 }
 
 type VBool struct {

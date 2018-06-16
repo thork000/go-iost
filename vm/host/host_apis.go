@@ -87,18 +87,21 @@ func changeToken(pool state.Pool, key, field state.Key, delta float64) error {
 	if err != nil {
 		return err
 	}
-	var val float64
+
+	d := vm.LiteralToToken(delta)
+
+	var val int64
 	switch val0.(type) {
-	case *state.VFloat:
-		val = val0.(*state.VFloat).ToFloat64()
+	case *state.VToken:
+		val = val0.(*state.VToken).ToInt64()
 	default:
 		val = 0
 	}
 
-	if val+delta < 0 {
+	if val+d < 0 {
 		return ErrBalanceNotEnough
 	}
-	ba := state.MakeVFloat(val + delta)
+	ba := state.MakeVToken(val + d)
 
 	pool.PutHM(state.Key(key), state.Key(field), ba)
 	return nil

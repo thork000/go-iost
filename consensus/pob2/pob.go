@@ -184,9 +184,9 @@ func (p *PoB) CachedStatePool() state.Pool {
 func (p *PoB) genesis(initTime int64) error {
 
 	main := lua.NewMethod(vm.Public, "", 0, 0)
-	code := `@PutHM iost 2BibFrAhc57FAd3sDJFbPqjwskBJb5zPDtecPWVRJ1jxT f10000000000000000
-@PutHM iost tUFikMypfNGxuJcNbfreh8LM893kAQVNTktVQRsFYuEU f100000
-@PutHM iost s1oUQNTcRKL7uqJ1aRqUMzkAkgqJdsBB7uW9xrTd85qB f100000`
+	code := `@PutHM iost 2BibFrAhc57FAd3sDJFbPqjwskBJb5zPDtecPWVRJ1jxT t10000000000000000
+@PutHM iost tUFikMypfNGxuJcNbfreh8LM893kAQVNTktVQRsFYuEU t1000000000000000
+@PutHM iost s1oUQNTcRKL7uqJ1aRqUMzkAkgqJdsBB7uW9xrTd85qB t1000000000000000`
 	lc := lua.NewContract(vm.ContractInfo{Prefix: "", GasLimit: 0, Price: 0, Publisher: ""}, code, main)
 
 	tx := NewTx(0, &lc)

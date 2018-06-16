@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/iost-official/prototype/log"
 	"github.com/iost-official/prototype/consensus"
 	"github.com/iost-official/prototype/consensus/pob2"
 	"github.com/iost-official/prototype/core/block"
 	"github.com/iost-official/prototype/core/message"
 	"github.com/iost-official/prototype/core/state"
 	"github.com/iost-official/prototype/core/tx"
+	"github.com/iost-official/prototype/log"
 	"github.com/iost-official/prototype/network"
 	"github.com/iost-official/prototype/vm"
 )
@@ -49,10 +49,10 @@ func (s *HttpServer) PublishTx(ctx context.Context, _tx *Transaction) (*Response
 	}
 	////////////probe//////////////////
 	log.Report(&log.MsgTx{
-		SubType:"receive",
-		TxHash:tx1.Hash(),
-		Publisher:tx1.Publisher.Pubkey,
-		Nonce:tx1.Nonce,
+		SubType:   "receive",
+		TxHash:    tx1.Hash(),
+		Publisher: tx1.Publisher.Pubkey,
+		Nonce:     tx1.Nonce,
 	})
 	///////////////////////////////////
 	//broadcast the tx
@@ -133,9 +133,9 @@ func (s *HttpServer) GetBalance(ctx context.Context, iak *Key) (*Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	val, ok := val0.(*state.VFloat)
+	val, ok := val0.(*state.VToken)
 	if !ok {
-		return nil, fmt.Errorf("RPC : pool type error: should VFloat, acture %v; in iost.%v",
+		return nil, fmt.Errorf("RPC : pool type error: should VToken, acture %v; in iost.%v",
 			reflect.TypeOf(val0).String(), vm.IOSTAccount(ia))
 	}
 	balance := val.EncodeString()

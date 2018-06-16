@@ -23,8 +23,8 @@ end`
 	}
 	sdb := state.NewDatabase(dbx)
 	pool := state.NewPool(sdb)
-	pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVFloat(1000000))
-	pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVFloat(1000000))
+	pool.PutHM(state.Key("iost"), state.Key("a"), state.MakeVToken(1000000))
+	pool.PutHM(state.Key("iost"), state.Key("b"), state.MakeVToken(1000000))
 	fmt.Println("--------------------")
 	//fmt.Println(pool.GetHM("iost", "b"))
 	var pool2 state.Pool

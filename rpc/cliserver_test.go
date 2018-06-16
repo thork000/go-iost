@@ -104,14 +104,14 @@ func TestHttpServer(t *testing.T) {
 		Convey("Test of GetBalance", func() {
 			ctl := gomock.NewController(t)
 			mockPool := core_mock.NewMockPool(ctl)
-			mockPool.EXPECT().GetHM(gomock.Any(), gomock.Any()).AnyTimes().Return(state.MakeVFloat(18.0), nil)
+			mockPool.EXPECT().GetHM(gomock.Any(), gomock.Any()).AnyTimes().Return(state.MakeVTokenByLiteral(18.0), nil)
 			state.StdPool = mockPool
 
 			hs := new(HttpServer)
 			balance, err := hs.GetBalance(context.Background(), &Key{S: "HowHsu"})
 			So(err, ShouldBeNil)
 
-			vf := state.MakeVFloat(18.0)
+			vf := state.MakeVTokenByLiteral(18.0)
 			So(balance.Sv, ShouldEqual, vf.EncodeString())
 
 		})

@@ -121,3 +121,7 @@ func CheckPrivilege(ctx *Context, info ContractInfo, name string) int {
 	}
 	return 0
 }
+
+func LiteralToToken(f float64) int64 {
+	return int64(f * 1000000000)
+}
