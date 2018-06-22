@@ -153,7 +153,7 @@ func (m *vmMonitor) Call(ctx *vm.Context, pool state.Pool, contractPrefix, metho
 		if err != nil {
 			return nil, pool, 0, err
 		}
-		holder, ok = m.vms[contract.Info().Prefix] // TODO 有危险的bug
+		holder, ok = m.vms[contractPrefix] // TODO 有危险的bug
 		//return nil, pool, 0, fmt.Errorf("cannot find contract %v", contractPrefix)
 	}
 	holder.Lock.Lock()

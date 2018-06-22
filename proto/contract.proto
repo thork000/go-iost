@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package proto;
+
+message Contract{
+    string Code = 1;
+    string Lang = 2;
+    repeated MethodProto apis = 3;
+}
+
+enum Privilege {
+    PRIVATE = 0;
+    PROTECTED = 1;
+    PUBLIC = 2;
+}
+
+message MethodProto {
+    string Name = 1;
+    int32 InCnt = 2;
+    int32 OutCnt = 3;
+    Privilege Priv = 4;
+}
+
+//message IntArray {
+//    repeated int32 I = 1;
+//}
+
+

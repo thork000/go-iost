@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/iost-official/prototype/common"
-	"github.com/iost-official/prototype/log"
+	"github.com/iost-official/prototype/proto"
 	"github.com/iost-official/prototype/vm"
 )
 
@@ -44,36 +44,36 @@ func (c *Contract) Code() string {
 	return c.code
 }
 func (c *Contract) Encode() []byte {
-	cr := contractRaw{
-		info: c.info.Encode(),
-		code: []byte(c.code),
+	cp := proto.Contract{}
+	cp.Code = c.code
+	cp.Lang = "lua"
+	cp.Apis = make([]*proto.MethodProto, 0)
+	cp.Apis = append(cp.Apis, makeMP(c.main))
+	for _, v := range c.apis {
+		cp.Apis = append(cp.Apis, makeMP(v))
 	}
-	mr := methodRaw{
-		name: c.main.name,
-		ic:   int32(c.main.inputCount),
-		oc:   int32(c.main.outputCount),
-		priv: int32(vm.Public),
-	}
-	cr.methods = []methodRaw{}
-	for _, val := range c.apis {
-		mr2 := methodRaw{
-			name: val.name,
-			ic:   int32(val.inputCount),
-			oc:   int32(val.outputCount),
-			priv: int32(val.privilege),
-		}
-		cr.methods = append(cr.methods, mr2)
-	}
-	sort.Sort(methodRawSlice(cr.methods))
-	cr.methods = append(cr.methods, mr)
-	b, err := cr.Marshal(nil)
-	if err != nil {
-		log.Log.E("Error in Encode of ", c.info.Prefix, err.Error())
-		return nil
-	}
-	return append([]byte{0}, b...)
+	sort.Sort(mpSlice(cp.Apis))
+	buf, _ := cp.Marshal()
+	return buf
 }
-func (c *Contract) Decode(b []byte) error {
+
+func makeMP(method Method) *proto.MethodProto {
+	mp := proto.MethodProto{}
+	mp.Name = method.name
+	mp.InCnt = int32(method.inputCount)
+	mp.OutCnt = int32(method.outputCount)
+	switch method.Privilege() {
+	case vm.Public:
+		mp.Priv = proto.Privilege_PUBLIC
+	case vm.Protected:
+		mp.Priv = proto.Privilege_PROTECTED
+	default:
+		mp.Priv = proto.Privilege_PRIVATE
+	}
+	return &mp
+}
+
+func (c *Contract) Decode(b []byte) error { // depreciated
 	var cr contractRaw
 	_, err := cr.Unmarshal(b[1:])
 	var ci vm.ContractInfo
@@ -124,14 +124,14 @@ func NewContract(info vm.ContractInfo, code string, main Method, apis ...Method)
 	return c
 }
 
-type methodRawSlice []methodRaw
+type mpSlice []*proto.MethodProto
 
-func (m methodRawSlice) Len() int {
+func (m mpSlice) Len() int {
 	return len(m)
 }
-func (m methodRawSlice) Less(i, j int) bool {
-	return m[i].name < m[j].name
+func (m mpSlice) Less(i, j int) bool {
+	return m[i].Name < m[j].Name
 }
-func (m methodRawSlice) Swap(i, j int) {
+func (m mpSlice) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }

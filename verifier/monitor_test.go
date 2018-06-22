@@ -57,7 +57,7 @@ end`
 		rtn, _, gas, err = verifier.Call(nil, pool, "con1", "main")
 		So(err, ShouldBeNil)
 		So(gas, ShouldEqual, 1009)
-		So(rtn[0].EncodeString(), ShouldEqual, "shi bob")
+		So(rtn[0].EncodeString(), ShouldEqual, "true")
 
 	})
 
@@ -136,7 +136,7 @@ end`, tx2.Contract.Info().Prefix)
 		rtn, _, gas, err = verifier.Call(nil, pool, "con1", "main")
 		So(err, ShouldBeNil)
 		So(gas, ShouldEqual, 1009)
-		So(rtn[0].EncodeString(), ShouldEqual, "shi bob")
+		So(rtn[0].EncodeString(), ShouldEqual, "true")
 		verifier.RestartVM(&lc3)
 		rtn, _, gas, err = verifier.Call(nil, pool, "con3", "main")
 		So(err, ShouldBeNil)
