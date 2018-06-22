@@ -5,6 +5,8 @@ import (
 
 	"errors"
 
+	"context"
+
 	"github.com/iost-official/gopher-lua"
 	"github.com/iost-official/prototype/core/state"
 	"github.com/iost-official/prototype/log"
@@ -29,6 +31,9 @@ type VM struct {
 	contract  *Contract
 	callerPC  uint64
 	ctx       *vm.Context
+
+	luaCtx    context.Context
+	luaCancel context.CancelFunc
 }
 
 func (l *VM) Start() error {
@@ -138,6 +143,9 @@ func (l *VM) Prepare(contract vm.Contract, monitor vm.Monitor) error {
 	}
 
 	l.L = lua.NewState()
+	l.luaCtx, l.luaCancel = context.WithCancel(context.Background())
+	l.L.SetContext(l.luaCtx)
+
 	if contract.Info().GasLimit < 3 {
 		return errors.New("gas limit less than 3")
 	}
@@ -302,7 +310,7 @@ func (l *VM) Prepare(contract vm.Contract, monitor vm.Monitor) error {
 		function: func(L *lua.LState) int {
 			is := L.ToBool(1)
 			if is == false {
-				panic("")
+				l.luaCancel()
 			}
 			return 0
 		},
