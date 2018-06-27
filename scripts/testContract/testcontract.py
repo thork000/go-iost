@@ -11,7 +11,8 @@ GOPATH='/home/wangyu/gocode'
 cur_path=GOPATH+"/src/github.com/iost-official/prototype/scripts/testContract/"
 project_path=GOPATH+"/src/github.com/iost-official/prototype/"
 test_path='testDemo/'
-server_addr='127.0.0.1:30303'
+server_addr='52.56.118.10:30303'
+#server_addr='127.0.0.1:30303'
 def wCommand(com):
 	obj = subprocess.Popen([com], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
 	obj.wait()

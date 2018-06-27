@@ -1,0 +1,19 @@
+testDemo 运行方法：
+1. 发送合约上链
+cd scripts/testContract
+python dumpSecp.py   #注：这里会写入pubKey和secKey到 test_secp[.pub]  a_secp[.pub] b_secp[.pub]
+python testcontract.py publishtx main test
+# 返回的hash值即为智能合约的hash
+
+2. 生成100个账户并充值
+cd ../sendtx
+python sendtx.py genaccounts
+python sendtx.py sendtoall
+# 在目录下 acc_list.txt 即为新生成的100个账户，且都有 100000 IOST 余额
+
+3. 大批量发送测试数据
+cd ../testContract/testDemo/
+把步骤2中生成的文件 acc_list.txt 的内容复制到 test.go 17～216行
+修改 218 行为 每秒请求数
+运行 go run test.go
+屏幕上会打印发送的 transaction 的信息及报错信息（若有）
