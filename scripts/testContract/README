@@ -13,6 +13,8 @@ python sendtx.py sendtoall
 
 3. 测试智能合约
 cd scripts/testContract
+python testcontract.py publishtx sample test   # 往 a，b账户里打钱
+修改 testDemo/buy_walleta.lua testDemo/buy_walletb.lua ，把 tx 改成第1步骤返回的智能合约hash
 python testcontract.py publishtx buy_walleta a
 python testcontract.py publishtx buy_walletb b
 
