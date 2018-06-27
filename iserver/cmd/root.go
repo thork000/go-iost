@@ -252,23 +252,22 @@ var rootCmd = &cobra.Command{
 		//检查db和redis数据是否合法
 		var resBlockLength uint64
 		// 最少有个创世块
-		resBlockLength = 1
+		resBlockLength = 0
 		bn, err := state.StdPool.Get(state.Key("BlockNum"))
 		if err == nil {
 
 			val, ok := bn.(*state.VInt)
 			if !ok {
 				log.Log.E("Redis BlockNum empty")
-				state.StdPool.Put(state.Key("BlockNum"), state.MakeVInt(1))
-				state.StdPool.Flush()
 			} else {
 				resBlockLength = uint64(val.ToInt()) + 1
+				log.Log.I("BlockNum on Redis: %v", resBlockLength-1)
 			}
 
 		}
 
 		bcLen := blockChain.Length()
-		log.Log.I("BlockNum on Redis: %v", resBlockLength-1)
+
 		log.Log.I("BCLen: %v", bcLen)
 		if bcLen < resBlockLength {
 			// 重算
