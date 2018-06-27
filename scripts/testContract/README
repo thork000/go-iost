@@ -6,14 +6,20 @@ python testcontract.py publishtx main test
 # 返回的hash值即为智能合约的hash
 
 2. 生成100个账户并充值
-cd ../sendtx
+cd scripts/sendtx
 python sendtx.py genaccounts
 python sendtx.py sendtoall
 # 在目录下 acc_list.txt 即为新生成的100个账户，且都有 100000 IOST 余额
 
-3. 大批量发送测试数据
-cd ../testContract/testDemo/
+3. 测试智能合约
+cd scripts/testContract
+python testcontract.py publishtx buy_walleta a
+python testcontract.py publishtx buy_walletb b
+
+
+4. 大批量发送测试数据(需和区块链浏览器端到端调试)
+cd scripts/testContract/testDemo/
 把步骤2中生成的文件 acc_list.txt 的内容复制到 test.go 17～216行
-修改 218 行为 每秒请求数
+修改 218 行 为每秒请求数
 运行 go run test.go
 屏幕上会打印发送的 transaction 的信息及报错信息（若有）
