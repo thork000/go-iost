@@ -1,4 +1,4 @@
---- main 猜区块
+--- main lucky bet
 -- bet your block and get reward!
 -- @gas_limit 100000000
 -- @gas_price 0
@@ -22,7 +22,6 @@ function clearUserValue()
 	clearTable = {}
 	for i = 0, 9, 1 do
 		userTableKey = string.format("user_value%d", i)
-		--Log(string.format("clear user value : %s", userTableKey))
 		ok, json = ToJson(clearTable)
 		Assert(ok)
 		Assert(Put(userTableKey, json))
@@ -44,55 +43,44 @@ function Bet(account, luckyNumber, coins, nonce)
 	then
 	    return "bet lucky number should be >=0 and <= 9"
 	end
-	--Log(string.format("before account = %s, lucky = %d, coin = %f, nonce = %d", account, luckyNumber, coins, nonce))
 	Assert(nonce ~= nil)
 
 	ok, maxUserNumber = Get("max_user_number")
 	Assert(ok)
-    ok, number = Get("user_number")
+	ok, number = Get("user_number")
 	Assert(ok)
-    ok, totalCoins = Get("total_coins")
+	ok, totalCoins = Get("total_coins")
 	Assert(ok)
-
-	--Log(string.format("account = %s, lucky = %d, coin = %f, nonce = %d", account, luckyNumber, coins, nonce))
 
 	Assert(Deposit(account, coins) == true)
 	userTableKey = string.format("user_value%d", luckyNumber)
-	--Log("after deposit, usertablekey = "..userTableKey)
 
 	ok, json = Get(userTableKey)
 	Assert(ok)
-	-- --Log(string.format("val json: %v", json))
 	ok, valTable = ParseJson(json)
 	Assert(ok)
-	-- --Log(string.format("val table: %v", valTable))
 	if (valTable == nil)
 	then
 		valTable = {}
 	end
 	Assert(valTable ~= nil)
-	--Log("val table not nil")
 
 	len = #valTable
 	valTable[len + 1] = account
 	valTable[len + 2] = coins 
 	valTable[len + 3] = nonce 
 
-	--Log(string.format("val = %v", valTable))
 	ok, json = ToJson(valTable)
 	Assert(ok)
 	Assert(Put(userTableKey, json))
 
-	--Log("after put table")
 	number = number + 1
 	totalCoins = totalCoins + coins
 	Assert(Put("user_number", number))
 	Assert(Put("total_coins", totalCoins))
-	--Log(string.format("after put number, number = %d", number))
 
 	if (number >= maxUserNumber)
 	then
-		--Log("number enough")
 		blockNumber = Height()
 		ok, lastLuckyBlock = Get("last_lucky_block")
 		Assert(ok)
@@ -110,13 +98,11 @@ function Bet(account, luckyNumber, coins, nonce)
 	return 0
 end--f
 
---- getReward give reward to lucky dogs
+--- getReward give reward to win users
 -- @param_cnt 3
 -- @return_cnt 1
 -- @privilege private
 function getReward(blockNumber, totalCoins, userNumber)
-	--print(string.format("get reward blockNumber = %d, coins = %f, user = %d", blockNumber, totalCoins, userNumber))
-	--Log(string.format("get reward blockNumber = %d, coins = %f, user = %d", blockNumber, totalCoins, userNumber))
 	luckyNumber = blockNumber % 10
 	ok, round = Get("round")
 	Assert(ok)
@@ -169,12 +155,10 @@ function getReward(blockNumber, totalCoins, userNumber)
 	totalVal = 0
 	len = #valTable
 	kNumber = math.floor((len + 1) / 3)
-	--Log(string.format("win len = ", len, ", key len = ", kNumber))
 
 	for i = 0, kNumber - 1, 1 do
 		totalVal = totalVal + valTable[i * 3 + 2]
 	end
-	--print("totalval = ", totalVal)
 
 	res["BlockHeight"] = blockNumber
 	res["TotalUserNumber"] = userNumber
@@ -185,7 +169,6 @@ function getReward(blockNumber, totalCoins, userNumber)
 	for i = 0, kNumber - 1, 1 do
 		address = valTable[i * 3 + 1]
 		betCoins = valTable[i * 3 + 2]
-		--print("bet coins = ", betCoins)
 		winUser = {}
 		winUser["BetAmount"] = betCoins
 		winUser["LuckyNumber"] = luckyNumber
@@ -194,14 +177,10 @@ function getReward(blockNumber, totalCoins, userNumber)
 		winUser["Amount"] = winCoins
 		winUser["Nonce"] = valTable[i * 3 + 3]
 
-		--print("i  = ", i, " address = ", address, ", wincoins = ", winCoins)
 		Assert(Withdraw(address, winCoins) == true)
 		len = #(res["WinUserList"])
 		res["WinUserList"][len + 1] = winUser
 	end
-
-
-	--Log(string.format("res = %v", res))
 
 	ok, roundValue = ToJson(res)
 	Assert(ok)
