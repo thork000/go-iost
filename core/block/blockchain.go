@@ -39,7 +39,7 @@ func Instance() (Chain, error) {
 
 		ldb, er := db.NewLDBDatabase(LdbPath+"blockDB", 0, 0)
 		if er != nil {
-			err = fmt.Errorf("failed to init db %v", err)
+			err = fmt.Errorf("failed to init db %v", er)
 			return
 		}
 		//defer ldb.Close()
