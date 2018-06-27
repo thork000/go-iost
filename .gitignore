@@ -223,3 +223,6 @@ servi_db.ldb
 */test.log
 */vm.log
 test/data
+scripts/sendtx/iwallet
+scripts/testContract/testDemo/main.sc
+scripts/testContract/testDemo/main.tx
