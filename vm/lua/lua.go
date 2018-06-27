@@ -65,6 +65,16 @@ func (l *VM) call(pool state.Pool, methodName string, args ...state.Value) ([]st
 	var errCrash error = nil
 
 	func() {
+		defer func() {
+			if err2 := recover(); err2 != nil {
+				err3, ok := err2.(error)
+				if !ok {
+					errCrash = errors.New("recover returns non error value")
+				}
+				log.Log.E("something wrong in call:", err3.Error())
+				errCrash = err3
+			}
+		}()
 		if len(args) == 0 {
 			err = l.L.CallByParam(lua.P{
 				Fn:      l.L.GetGlobal(method.name),
@@ -88,16 +98,6 @@ func (l *VM) call(pool state.Pool, methodName string, args ...state.Value) ([]st
 			}, largs...)
 		}
 
-		defer func() {
-			if err2 := recover(); err2 != nil {
-				err3, ok := err2.(error)
-				if !ok {
-					errCrash = errors.New("recover returns non error value")
-				}
-				log.Log.E("something wrong in call:", err3.Error())
-				errCrash = err3
-			}
-		}()
 	}()
 
 	//fmt.Print("3 ")
