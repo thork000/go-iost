@@ -1,0 +1,314 @@
+package main
+
+import (
+	"crypto/tls"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+	"time"
+	"log"
+	"encoding/json"
+)
+
+const BetUrl = "https://13.231.93.219/api/luckyBetBenchMark"
+const KeyListStr = `23DLNisxzn5LTLZmi43mKZQnpvTEsXTgMT3aTCsxJDbZ6
+AekVbUQg7Mz5VZUDqpNJ2s5pYdAoixMDpqfkbSSpwFR2
+oq4myJD3ZSr53zvKamioRFLawg1cSvuxdtNXkRd9VcoB
+CMRxTv8nntPmqNjWgED3bS5fiqm2TU5CegsLWo7qrEFZ
+nZz5QCAf1ekPtFcMKcFqJLRDYj9jCDc8LetRxnCiMXBC
+B3D1JUAhstq77KKJ3Xy28X8EXD8nDH9vw8kSwtQexPxA
+xutYH8mKxBz1m3U2KRrxfT3fLJAQHQEiDM594JTkyrHr
+BVJ3AYeJwAM9PMoQXeHikpCo4BMPGVGM4F9VosQQr7V6
+21ytjK4ZdNgCNZnk33HRG4GhL42t5BQb2NbgdAZE9X3V9
+E4zwHZs2roXMqhG3UTcM6Z5dL3vzkj1yqDpe9wkJRCup
+26Y8Z9bStYufboMEMrTGkTJSnnpyaPV15Ji6bLNZto1Tv
+9UGdnKovQVRwch2Y7GDbnG1Hho8h4hTE2WNhF9PUeCmK
+bweEKRpoLYELHJ57SzwgGdDVEVjRU7wYhNmJumWSBpoq
+Gr3tSb2kNKYbbky9hudkX6KcQ53X73myY6Vg2F6shGmD
+r3NZgjpHaLtoE7XitAcNxJxydDowfbYMSAouWEM3vJxX
+GSZHB8jZe129t89eVwTxR6vDbTMZLpdmtwG7QyTkJiyo
+whaGxLWbnigyUQWy33fby73vqUvCgR5jBPCRXaEbCpbU
+BPF5niLfihfeCkE19DowaYk7u9NaBrLrE4dRpa4EwPkm
+xNKAJYs5T8vUYFoRuRykxQbCkkVkgq13zk7rjPhB5fQ5
+isxvq7QG31mchB7FnyE67LMR6nimoFPBgi7ScxDmw1k
+teoSjNkL7SjSj8ogZS3c1w1MgfaHzC887k99GhbvnJdy
+87ZBjdAx8R6kN3x3TvAAzUNcY3ApPoNfvF6nVkd5MgWq
+rCkiRVxmg3YkGpPnUdiKU25Uw9oCwKgFjXofbSGyC1ge
+DkcgaVURszyDQ8Pe5oKAUeHdrTNiyBQcnWXHEAYNbt5E
+bt2YsTeR8RFzADZZK8BfmyprN9YJmT6KR54MosrEo9sN
+HPsBUBheb9CuJ2ue5L6zKHCsXd2qjou9qZwKphr33jp7
+27asBS4bjeDGtNn9UkEWaKsBY2vthVeimmAzkd7Ynhetj
+14QN1jNkiaK6GmYURM2uGZC1AWhQa74mvx89iQ85ZWcz
+bmS4QdGLVMz1Qrk6vxz4eMwYKHHPoE2bE4zQCkhC6VAt
+GXxaZw4jftroKik9VdsXB5xNHCuv7kkFsQvgrjReNg3B
+qM3stj9V1hvrkZCRRtUo5z4yXbSMMRfx213AoppJvCTT
+AZckUUDvamFtgZVGRoJjMdJa7ujhibtdNfKPCBpoJ3p6
+29x73bhtTF24sSCRfznmNSWBu9NvcmPg8KWmwJmQ9kz7c
+D5KTwpMts8Yor2bWeHzra89vpQhNXUNSC2HMWhhHVKnn
+ro3SpfLHT1oKo9YfrLJXbCA723VNk42cJwBmbG4jW5Ua
+7mRuvyDynx2MzzkrANCYXa8mGv4Ydm1HKHsmPEiDXTnc
+nQbTt5QbCzcS828omWfbjVG6Hp7X2aXexd7vdS9aWxd1
+cYR1jsn2j5f8SDm9FL9KDVPeCnYbqSnkdqc3frEtpEz
+25dazwKFjidVnzupGHWfj5y7bQgB2ap4vAbotn2gbzHwz
+4H1Vrk5WVjAgQP5daQcM5tDASJfbWHT2YhCgtyqmYudt
+23k2UGCm3bbPdccfuGUj2zA6LkEoR1eiQN8r8bBZ5LWku
+9yfVDUL4ZQ4um72DGgdkATbNkwUDPcEt4Q4orhC34g3b
+2Awj9ae6LiQqxvHVhuFiUB4WD5sjsVVs7oWxoKgBtNJpW
+Ewxm6vNeTwWAx76wSUiy1LKVUSLYLS5LNX6eNc8ZsCCp
+favjX8W6aTa4r2pAWu87Jz5uNp1Hy27tn9e8YCzL9xHW
+9Go1Nn9bJpGPyPJtoS1tAATQFawAUWfXkSDSWJGnNTqe
+snpXTB8M3SsfQMzmbXAKJSGWy4XCiqyfd3BxEgHBi76o
+3u6NRvgENAbyejyqvzM1uApeaTLDZoBXFUq5SrCUvqzx
+wgy96eE5d64uQJR9GrNdVyFJ86dUupbpUKShuHpXTqgw
+5Rui8h5Upt4arLCREbzgAr6J4WbuNfVWnmhMfv8cMhwg
+2788GsthvjCbyKGQsk4vRDELQ1EARqKS693cGftaWvUph
+8HPZphaHLCy7QuPMdexxpEqvBeg4Koikx7XTZ1fHsnnB
+2As69xGqbXvo9mfyCsUbZRjTH2B38oo8t8STNS7JvwBz7
+AThjB9nBLjx5oTx8JPdGR3Db4T4iyUuo4agctpzPhGLS
+2344RsjBHFFkQbNyd66EynYsptg5vgcEYhM1iEbkiNweD
+9DUhpQ9KPQd2ZmVUtdxuGyS1pkDjyoZX7Dt2q2WudLvp
+dx5WkQAjPHDCeaXeFhnmV3PKRN8iyioWKEPJ22gxre5j
+5MrmCDuqmf33RV2GAHFY2D6ZHNSA8gJnq476zo1aK2MD
+jMdH8ZVM4cKN6KC9TpD31wsr6V2GhN8BZTPX4Pvd4Xai
+6uNoHX9F5aFSbJBXEoLU1ErW43UicPTGM8MxiHnHhVDZ
+ySiXJTA65ReD1FcnvAXhqM6ZhWucDJzUyLzVNxPFzKz7
+EKYQEzFNcay1gRxXg8ciyuaQtTQkMmhLZtJ5VmfTyu9p
+25uwntKeaxan4xkTCQR7ZJpbPAhPVJh5UDNtZWyW1rxB3
+7ZC4x9D5RidTKYC7wQRKW17RLoLkwCSgEsyZkqfdz3pi
+gchSxTZWUTnxSd7Ad1de1K3sdhsGKwmZAE7cjmY9jzD9
+SqPP3hERxPoZSiiZqbnnhx2GK8JXWSsYwNACKfb4We7
+zA8Dj4fyCwrYchMkF4mXnPXuXczowsaskpiQ2CVUeBrW
+Azx4oshqSn8h9QwFat3YeRggdMAngdzNNZ7TyCRCWjoW
+z3hxEQUZadm2HGSmm6mvaueCuh1DxPPVwqmvJXHywYC8
+HLxiPw4FcSXpnCPuZksXYb6dfk547XeVGDpTMwEcg5u4
+tFzLUPYs544yvBzPFBfe2XnD89Ap8d1RMDy5UFho5Biw
+A4cJULtVQKAXw5y5avyQA5BVrNaVAcfoxHeTYxfBjV3j
+qWQABckydy1v9jqsUG4DDArZiqizRHyNtL6fakokou72
+85tfznJaGBVpGDQAcmqfTNpPJaYKUYjdKVqrQahV1ADE
+oLfdXPkrkTXtwbmmf3qC3bxeTMtdXvXiq1Ld3rUqxREm
+8rXkNwWCwRnfW5f7JzhLy4qFg4pdtFB2x3n68dUmRkHd
+24pXRT3at9wZV93s5EEQSY1j84aM8ko3u1fBrwtrtUssT
+3wayqWqAKZ7SyovNdxRJRtAUq6sFBdKQLm2SPS1s4urz
+25oREkvXhatfpJxooy3Py7Cy4NbeLBSY4soiFVpJpqgGY
+ECN7piuCnkddy3rPTiYpfTiixXK5q5DKKHBYVWVHcC9F
+q6scW2nfD3836Y8HZRZt3aZMKyZApfPYt3nqPBnAGbe6
+UwFF515Xf4Wp19DP6G4x1uqfgmh7LHfDYB1REHEZ3rm
+27HenBpJVXZdaQxLGmLgABPfKKE6YjidjnDBCZKax4hds
+8GyShCuhwKPmMo1fN4J3x716UxEP9sfJNNETze5SXHTL
+bhCgGBrMMi5C6BoSRyrKUW7DrTANtiNqQ78ufQgKvHnY
+6LLfxyQH4azUFv24Qw95ki7Uxab9E6GnpTa3SRUDpZod
+gtwaMBAdAu8kWiQchobfqbjD5SGcfXiZcwSnTXissgC6
+9h3CnC4pUceRaM4kNH6E5UiAWL9cAhFA9xUHHi5hUYJz
+mVLhHkXQDqWRVLdXyzDTfXTjh6JHk82NqLCghphMun84
+HDhA3ifBmMciwRF19zJGaTtLAYTaofPhac74B2o1DKqZ
+toPMDtXjFfMzVbddAFaUz8T1xLsAH54BYrvbRU7g7MQA
+Dn9YncripzTcB2oNYrynGhGUCnmkc3YtaRQwvJnrafpt
+z5zX6N1wLjFqoX5qx687iC4b3spYSGLYKaJDf2Ec7g7u
+3E7U2W5MoSoUHfxtAenH1p1wyFrLiixFC3V9GPozdoei
+kc1rt22xaY4TB8XVwMbKn3W7mqFB3Wn7woydaD5ihMNA
+2c9v2iaxYUFtGzMmyzaFrwoZNXPbdW2NeUrjjSKSaiAn
+23a7Jark1NV1Ltcgsq1F9gY4PFjfEedvc1fJFrBE3XJtK
+EAk4Bmw9dkzNxfVQMpdK8wt9F9pZP2foMcJ9hqVh2jxx
+2BXAkFzDQRvKb8mVt6w61uq8xQiL7uQ9DTjdrHkWzAnfK
+A6XcaBAmXyRaKMLWdUtKCon2BbZi952RoF5jU7XA4ctU
+29WkKuRQevpNSj4BPebRkXsWbS3xAAB51hQFe71tzpDpy
+FjvijFTt6pgUtNKNAk2WyoHZy74A85N9iG7L7q8nAF24
+j6mDNpWKJQvJ17UZTTB7C3iUm2Yzfy1pzsR41Dofv6v9
+3kdvzrPkq1iuvhrTtgAHcv25AfNV2XMubL1Sr8uCgPzm
+kdA4PNeyF7QPYu1H3vwYw35tfcdrVeiMs6B6v7xJw838
+8QqGZj9JCZ1E67ByKaQ8eAZ2ak2FTvSn9bwx3cLnhP7Q
+24NXyCp8iUzsdTnCDD41oXsfByT7jJ6HybLkTo2q8J96v
+2nuEJd6RZGD9isE3vN2uYN9du2p21aAKBk3BundJfLnd
+dVUHKukMSif6oS4cGNyqAEYv8FyAVzGiAYTpQxUPKru3
+H8cBhTDeioAu2NmtWRyf9hzJRhuFDYu8kmDVqnoaDjHy
+2BJtRo13ARJ4r6DcAKH66q8b1yVbZzxYSQSQFrxmS1hbv
+7ZV4suPqnixcBDzZ4tsDbx8f6BvtN2x7EfL5KdQ252xn
+22Eo4j3xmkFLeCHNqqBJvnMZVCFwXFceu7RvEHBBbDsR8
+8cnY1UgkFngnyUn7R6kygZrzHCBxcUbihRgA1d6eWeaX
+29J7YXZENcWdmdE7UDgM8tfr8zLvvG22Y6J6LpJTewYFc
+EH7CQQqDYRVKHWeHauPDa8R5QuwEi7n2BmLCHRtT1C9o
+fKjzrLzdtbmdzvQi3JHJaKEbLhuKHjdQHXEBryEwZA1W
+2Tfo9nhsYrQwsDUYPtaYhCUs7Sg7521Z78qXRzbwsZK3
+jivAZ5efutWwbZsCDqsJJc9PNCPAkRHe6iNFbkNNuYFk
+GSxXnc5Ev6Tymsoeo8vZyxS2mSjzoe4vSckGWLPMucZT
+28VWpW3djnSEUiaDLNwEKG26u7NaHGbbwCvLv4NVJGgYv
+8g2GAtVymXuhnDyFnhSXwPDRA9dUezo42jtyQLxGtHa3
+yuNi4rziHVSfS3fjST4bHingPxAgkKkqRu3g4BuZosjq
+E4Sp5FF8YRz4dEXpj5y62KRhjRNr68t2sTKa6bHKRtQ2
+iWUs86HPPkcKH9kxZG3P88WM5tiNjzoqnXnryKN5HXiA
+9UuXZC8KW9ckxLxWxJnX85VPybQo3bMsqbkv3dk9tfmt
+vnrPhNNw4vwcofVYL6vQC2kQxeH8d1Bf7uL8XXHogwLS
+AfDtRXDLjmd9TqVos56dq1ZEFTcqKuTxZ4QV7ky57noS
+24vRb3jbMkzsC8iyBqcDJ1JTPktjxnQPvMoLJonDiuWKr
+3v9x4UXWyuH2vGCDx2a5GKd6uhpirW9cqV1AaGygFUjV
+dFFBxVoQnnZwsJmJKDkKdRbawc8s7g7f6SK6SzHL8bQJ
+A8Sd6X8wrKcLGxMEynyRen6p7vS8cGGCsaG9zFszsosa
+evTAPJVcpNtATzR3Q5ZRtYX3M7sRhhrKaZopgVRFoiBN
+BP5s4uAY1uRDDsRNXNa8RnQHLva3nkNwBDwvJnH1qfc3
+neP7zEFbCnt7NZjTgMmBhqkrmtJUMuEuuTApTQacz8xE
+4jM4jmFZVtbLo9EGLKN6wfMWMsUnQZBm3KW11xyuCPGt
+vGz3drnZ2nf1NzHBetUVRzeFZ6qUCE3vMRgVmULUTDYy
+G2UdfwGr45KbZ6DHKC2xva6dYx1mvKf9PbVXkFfemMSb
+yqyQUiBMAfogxbf2JbS2dB8YVR3HgrubnhYn21oYqSQv
+6kBW4qoXn3QxCQPwU1Kyhg1cFwwapg9peNd5dF4bpMZZ
+251kjBoLPXHih716c84PFWmDAj6BKsXpw34kEh9w9FDhp
+HB5qVs3F72s1rNeN9RzAko4CKwq6zxH6LD1mTyYgYDZE
+wiJtMhnrkoLPgKAGRofwWN1J67326dsq6KGcMWumqN3k
+2Q4ws7UZe455qhtQvocGg5T7PyTaemaDNfPyBHcpZ2ut
+279Dsac9VDEjpwiVtVEoSZz2zKv9JuiVyaJhujaeBqt7c
+3eZoHXCD1oSHLSCrYgUX4m6rzNxrQ1bb1w2f3Vo3BQEM
+23DtznA8598azUroEfpZJWA9oH9o3dMXNz1EM4RQ3L7Kq
+FTHWgnrRzkESLWC4r2knHGvXUCrmbeXTLrfdd8eHQSiJ
+xQMUeYep8CHotF79Zmj2UUtsr7NkTSJjFMnN6rUvzU7P
+F5tzUKnmTCaFgBFtcPGjWSFQMYGUSc8wh5SXihv1Sk8Q
+v5wnnWeDn57mCoC95PDDa7dPB3tQMMeQ8Mh9KzJYXqjQ
+D6vXX2GPd48TWKT1zcdS3TpD9nVV4psRDaGJK1vL1k4n
+qZ6EfMGRStgktevNXyt2ku1XrC8vD3RVS75hzp6hk23b
+5AY5fRG1UksG4V4VnU5F6CfpEqbtHwLvREL2b7qywBkk
+gBqzieYzeA6TEEHY9h4P8F9p6595RpsMLCh5avEytQ1c
+4Q47Wq4DBCbzFWMdz9JbPmdU4ozTDs6drm7tHSogmgsr
+eJQMyhpt1tj7cNL39NH2Mr1Xj46JQeJjQfkRueLUbjzq
+EyJgfd1spUQoGf9dEaeKWxYDFTtAcfqnrY1dPvQdjM18
+2AqN98LdwpekQkUBJdJAAZffJB4wZTJnU1VcfhJt3amwo
+HyRi3XBiqQAtN5xUSnPH97TFnQBwamT8ScA5XCBXzg5x
+26RkyMwqQxSSs7rmwLhJGVFgRiTMHaWc7zB586GzyFfP9
+E5QxSM68o4DMH8hhfdSRsqsBCyxj6DNaz4etYf2B7dt1
+xnKURU4rD2MAEWdWv72it1EwjWiJUmTVRcUQDLMo8Jc3
+FF4n9SRwUw2kLTTbCbvqjHgLpHWxF6uFKvrF5ftz64Ep
+ya4iBTXvsVXNi3894RBAEA5gBE1p8vxnprUstQGY19F8
+FCYPeXbS95ptXWvkCp2TnQKqzEegcZyA6jwReN3KU3ph
+mQiKrFCAtDLaTBT1UDLfGkBsrjMDLsnVW6N1mP1zxHmQ
+J6MJKX2pZFVFeksruq6EzXLpmMpaKomo43YH7BTWvje8
+crhQX2ueiaAsBMrXYpuKa7RQi5ZTfRUNy9YkrRdLyDMw
+8J76s5n32ruK2624oTh6gbsMEsYNiJwHNzuKYw2vw3JW
+uQHbJBdVcxPVAnMUjA31p5TFwgrtwBWurmXbEmXMsqy8
+3PnS3z6xWkNSDsoqZmnmWygE2K9T6gCukQKuVk2iSopP
+28u5iogpfGNjMEp2rsoNMQyoHL5zTmjRj2JvHwA2VLB57
+DGu2kpubrvk4sgKiTVk2Q6Jq5mCfmyrj5gPyveZKy3Zc
+28HSUv1M7UrjNLWxS5Ajfg7AQbQNovVihyyNkLRVmFr3Q
+2KCpcd69x1MimTbyngaEr7kA8o9yj4LgfbHkncuxfrVN
+2981NFa8cgULzGfhvPaYWUFP27dx696FkvtDz8qW1eS2r
+HsMQkaCoq2ZAbvWY2t3zQb2Zq852aZJrwucA1mfMWN66
+gPtP9zmS86fyNK3xxLzq2L2Hb31RAVRDV9KzvoLAQ2k8
+AyCToDmpYgtcTse3S2YiuyLhnJbNWzQ97744CQvy6Dny
+2BDKYpMpBXm7ixuNfYpRBKTWZ6gFBcCVkdbnjvg5UDnAV
+4SzZqs9FvuytzzcMoeXaHGcu7xBqQdXmt1uCbDiGWiWj
+iwAo9FPqdig18xx12XxXtzMkEvgWvzdidzaz5WAoBMfL
+J7jfZjhfephf5DJd5zfdWfAi8z2MgFdLJmqfbnuLQbKE
+27yP88jcFv7nPgdzinKN4pBKwb7jgCzF62UGmoegmg5gn
+Esavt1HtAXvMsrBhATUsHVxVAtshkJQj2nT7Nio3rJ6N
+qqkgrmyd8Uc2vwxYPUrSN1mYGhCT3CULzPteFBaqgErw
+3q8HmSqRGY5SgFRrztPjoTaJATBZZ7bXPL3YmoSvcJqZ
+qmxkvzPPangLtg5djbuPiJ91u4AFKEoYn676BGioh1zN
+HzieLaGdmjtU19vEydF2WthVctXGgLgr1oDjjYuJAoaW
+2AENd6UFFd5cgtjnnKUeZfk48xSxBNNuBS7YR7ig6Tisd
+J7Gb28dLf9cJUtt3VxuKPcS97VFWpE1eFDPUtDB2m1my
+23ZwBpiFDeXaKV5W8pyKVFRyzDjKzFqfaGoe7x72qrWXr
+G6DywtV6YB5aQoy39aLqn5epu8QZrX7haMhCNSSuQGxq
+ihHTfQZoehcwirzxwnHa6e1uCPxvi6sRY472MdC7KYFA
+FXUdwSVybS2CtLuog1u8ApLAcFvYCFsGggM5orv3Pdn1
+dYXF7uu79T3M4TTaMzPwRaWvFSHR3eUirLLmGTYeP6g3
+QMcD71yCFCkSE2mT6Lxdqh8diTB8iUAoTAMGYrkUXGn
+29eYyHptjinyiQciZ72txxCtkxxkpqX3zEQv8Fi7nCCp7
+3oJnH4PQhg9rhGcaam2sThMamPt9vmkYqacBaFhncZuq`
+
+const BetPerSend = 50
+
+type Account struct {
+	Address string
+	PrivKey string
+}
+
+type SendBetInfo struct {
+	Ret    int    `json:"ret"`
+	Msg    string `json:"msg"`
+	TxHash string `json:"tx_hash"`
+	Nonce  int    `json:"nonce"`
+}
+
+var (
+	accountChan = make(chan *Account, 100)
+	r           = rand.New(rand.NewSource(time.Now().UnixNano()))
+	httpClient  = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns: 20,
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+)
+
+func main() {
+	go GetAccounts()
+
+	ticker := time.NewTicker(time.Second)
+	for _ = range ticker.C {
+		for i := 0; i < BetPerSend; i++ {
+			go func() {
+				account := <-accountChan
+				betAmount := strconv.Itoa(r.Intn(5)+1)
+				luckyNumber := strconv.Itoa(r.Intn(10))
+				rs, err := sendBet(account.Address, account.PrivKey, betAmount, luckyNumber)
+				if err != nil {
+					log.Println("sendBet error:", err)
+					return
+				}
+				if rs.Ret != 0 {
+					log.Println("sendBet error:", rs.Msg)
+				}
+				log.Printf("%s\t%s\t%d\t%s\t%s\t%v\n", rs.TxHash, account.Address, rs.Nonce, betAmount, luckyNumber, err)
+			}()
+		}
+	}
+
+	select {}
+}
+
+func sendBet(address, privKey, betAmount, luckyNumber string) (*SendBetInfo, error) {
+	param := url.Values{}
+	param.Set("address", address)
+	param.Set("privKey", privKey)
+	param.Set("betAmount", betAmount)
+	param.Set("luckyNumber", luckyNumber)
+
+	req, _ := http.NewRequest("POST", BetUrl, strings.NewReader(param.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Host = "explorer.iost.io"
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var sbi *SendBetInfo
+	err = json.Unmarshal(body, &sbi)
+
+	return sbi, err
+}
+
+func GetAccounts() {
+	keyList := strings.Split(KeyListStr, "\n")
+
+	for {
+		i := 0
+		for i < len(keyList) {
+			account := new(Account)
+			account.Address = keyList[i]
+			i++
+			account.PrivKey = keyList[i]
+			i++
+
+			accountChan <- account
+		}
+	}
+}

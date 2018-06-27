@@ -10,6 +10,7 @@ HOME=os.environ['HOME']
 GOPATH=os.environ['GOPATH']
 cur_path=GOPATH+"/src/github.com/iost-official/prototype/scripts/sendtx/"
 project_path=GOPATH+"/src/github.com/iost-official/prototype/"
+server_addr='52.56.118.10:30303'
 def wCommand(com):
 	obj = subprocess.Popen([com], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
 	obj.wait()
@@ -30,7 +31,7 @@ def GenAccounts():
 	if Buildwallet()==False:return "FAIL"
 	accounts=[]
 	for i in range(0,100):
-		wCommand(cur_path+"iwallet account -c test")
+                wCommand(cur_path+"iwallet -s" + server_addr + " account -c test")
 		f=open(HOME+"/.ssh/test_secp","r")
 		seckey=f.read()
 		f.close()
@@ -64,6 +65,7 @@ def Sendmoney():
 
 	flist=[Compile,Publish,]
 	for func in flist:
+		print func
 		if func()==False:
 			return "FAIL"
 	return "SUCCESS"
@@ -136,9 +138,9 @@ def Contract():
 #TODO iwallet 应该使用最新版本编译的
 #TODO 所有文件路径都应该是绝对地址，用函数封装一下
 def Compile():
-	#print "[iwallet compile]:",
 	wCommand("rm -f "+cur_path+"test/1to2.sc")
-	wCommand(cur_path+"iwallet compile -n "+str(random.randint(0,sys.maxint))+" "+cur_path+"test/1to2.lua")
+        print(cur_path+"iwallet -s"+server_addr+" compile -n "+str(random.randint(0,sys.maxint))+" "+cur_path+"test/1to2.lua")
+        wCommand(cur_path+"iwallet -s"+server_addr+" compile -n "+str(random.randint(0,sys.maxint))+" "+cur_path+"test/1to2.lua")
 	if has(cur_path+"test/1to2.sc"):
 		#print("ok")
 		return True 
@@ -148,7 +150,8 @@ def Compile():
 def Sign():
 	#print "[iwallet sign]:",
 	wCommand("rm -f "+cur_path+"test/1to2.sig")
-	ret=wCommand(cur_path+"iwallet sign "+cur_path+"test/1to2.sc -k ~/.ssh/test_secp")
+        print(cur_path+"iwallet -s " + server_addr + " sign "+cur_path+"test/1to2.sc -k ~/.ssh/test_secp")
+        ret=wCommand(cur_path+"iwallet -s " + server_addr + " sign "+cur_path+"test/1to2.sc -k ~/.ssh/test_secp")
 	if has(cur_path+"test/1to2.sig"):
 		#print("ok")
 		return True 
@@ -156,8 +159,9 @@ def Sign():
 	return False
 
 def Publish():
-	#print "[iwallet publish]:",
-	ret=wCommand(cur_path+"iwallet publish "+cur_path+"test/1to2.sc "+cur_path+"test/1to2.sig -k ~/.ssh/test_secp")
+	print "[iwallet publish]:",
+        print(cur_path+"iwallet -s "+server_addr+" publish "+cur_path+"test/1to2.sc -k ~/.ssh/test_secp")
+        ret=wCommand(cur_path+"iwallet -s "+server_addr+" publish "+cur_path+"test/1to2.sc -k ~/.ssh/test_secp")
 	if ret.startswith("ok"):
 		#check balance here
 		#print("ok")

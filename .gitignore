@@ -203,7 +203,6 @@ bak/
 blockDB/
 
 dump.rdb
-iserver/iserver
 iserver/blockDB/
 iserver/netpath2/
 iserver/netpath3/
@@ -229,3 +228,5 @@ test/data
 /core/block/serviDb/
 scripts/sendtx/iwallet
 
+scripts/testContract/testDemo/main.sc
+scripts/testContract/testDemo/main.tx

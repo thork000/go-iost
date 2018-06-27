@@ -6,12 +6,15 @@ import time
 import sys
 import random 
 
-HOME='/home/wangyu'
-GOPATH='/home/wangyu/gocode'
+env_dist = os.environ
+
+HOME=env_dist['HOME']
+GOPATH=env_dist['GOPATH']
 cur_path=GOPATH+"/src/github.com/iost-official/prototype/scripts/testContract/"
 project_path=GOPATH+"/src/github.com/iost-official/prototype/"
 test_path='testDemo/'
-server_addr='127.0.0.1:30303'
+server_addr='52.56.118.10:30303'
+#server_addr='127.0.0.1:30303'
 def wCommand(com):
 	obj = subprocess.Popen([com], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True)
 	obj.wait()
@@ -23,15 +26,15 @@ def has(fn):
 	return os.path.exists(fn)
 
 def Buildwallet():
- 	ret=wCommand("cd "+project_path+"iwallet;go build")
+	ret=wCommand("cd "+project_path+"iwallet;go build")
 	ret=wCommand("rm -f "+cur_path+"iwallet")
 	ret=wCommand("cp "+project_path+"iwallet/iwallet "+cur_path)
 	return True
 
 def Compile(fileName, account):
 	wCommand("rm -f "+cur_path+test_path+fileName+".sc")
-        print(cur_path+"iwallet -s "+server_addr+" compile -n "+str(random.randint(0,sys.maxint))+" "+cur_path+test_path+fileName+".lua")
-        wCommand(cur_path+"iwallet -s "+server_addr+" compile -n "+str(random.randint(0,sys.maxint))+" "+cur_path+test_path+fileName+".lua")
+	print("iwallet -s "+server_addr+" compile -n "+str(random.randint(0,sys.maxint))+" "+cur_path+test_path+fileName+".lua")
+	wCommand("iwallet -s "+server_addr+" compile -n "+str(random.randint(0,sys.maxint))+" "+cur_path+test_path+fileName+".lua")
 	if has(cur_path+test_path+fileName+".sc"):
 		#print("ok")
 		return True 
@@ -41,8 +44,8 @@ def Compile(fileName, account):
 def Sign(fileName, account):
 	#print "[iwallet sign]:",
 	wCommand("rm -f "+cur_path+test_path+fileName+".sig")
-        print(cur_path+"iwallet -s "+ server_addr + " sign "+cur_path+test_path+fileName+".sc -k ~/.ssh/"+account+"_secp")
-        ret=wCommand(cur_path+"iwallet -s "+ server_addr + " sign "+cur_path+test_path+fileName+".sc -k ~/.ssh/"+account+"_secp")
+	print("iwallet -s "+ server_addr + " sign "+cur_path+test_path+fileName+".sc -k ~/.ssh/"+account+"_secp")
+	ret=wCommand("iwallet -s "+ server_addr + " sign "+cur_path+test_path+fileName+".sc -k ~/.ssh/"+account+"_secp")
 	if has(cur_path+test_path+fileName+".sig"):
 		#print("ok")
 		return True 
@@ -51,9 +54,9 @@ def Sign(fileName, account):
 
 def Publish(fileName, account):
 	print "[iwallet publish]:",
-        print(cur_path+"iwallet -s "+server_addr+" publish "+cur_path+test_path+fileName+".sc -k ~/.ssh/"+account+"_secp")
-        ret=wCommand(cur_path+"iwallet -s "+server_addr+" publish "+cur_path+test_path+fileName+".sc -k ~/.ssh/"+account+"_secp")
-        print ret
+	print("iwallet -s "+server_addr+" publish "+cur_path+test_path+fileName+".sc -k ~/.ssh/"+account+"_secp")
+	ret=wCommand("iwallet -s "+server_addr+" publish "+cur_path+test_path+fileName+".sc -k ~/.ssh/"+account+"_secp")
+	print ret
 	if ret.startswith("ok"):
 		#check balance here
 		#print("ok")
@@ -85,8 +88,8 @@ if __name__ == "__main__":
 
 	com=sys.argv[1]
 	if com=="publishtx":
-                fileName = sys.argv[2]
-                account = sys.argv[3]
+		fileName = sys.argv[2]
+		account = sys.argv[3]
 		print(PublishTx(fileName, account))
 		sys.exit(0)
 

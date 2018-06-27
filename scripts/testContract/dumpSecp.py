@@ -6,8 +6,10 @@ import time
 import sys
 import random 
 
-HOME='/home/wangyu'
-GOPATH='/home/wangyu/gocode'
+env_dist = os.environ
+
+HOME=env_dist['HOME']
+GOPATH=env_dist['GOPATH']
 cur_path=GOPATH+"/src/github.com/iost-official/prototype/scripts/testContract/"
 project_path=GOPATH+"/src/github.com/iost-official/prototype/"
 server_addr='127.0.0.1:30313'
@@ -35,5 +37,6 @@ if __name__ == "__main__":
 	if has(HOME+"/.ssh")==False:
 		wCommand("mkdir ~/.ssh")
 
-        print(dump("a", "gvCQNmkuA6AwdddRMSUg6jr8W7swKWAnhEY3cAthj9bX", "8a11FHFjvWDbtx4gR4JJWBwXDVwTwDFDMv7F8J6wFhyN"))
-        print(dump("b", "2538yUDuKTLaXqCTFS1tfVmMEL4dVnzLDWChoMdoxgCa4", "YJXWyJkMiSAYeHkUJukCUPW8srfXmCFF148isFz2RdY"))
+	print(dump("test", "2BibFrAhc57FAd3sDJFbPqjwskBJb5zPDtecPWVRJ1jxT", "BRpwCKmVJiTTrPFi6igcSgvuzSiySd7Exxj7LGfqieW9"))
+	print(dump("a", "gvCQNmkuA6AwdddRMSUg6jr8W7swKWAnhEY3cAthj9bX", "8a11FHFjvWDbtx4gR4JJWBwXDVwTwDFDMv7F8J6wFhyN"))
+	print(dump("b", "2538yUDuKTLaXqCTFS1tfVmMEL4dVnzLDWChoMdoxgCa4", "YJXWyJkMiSAYeHkUJukCUPW8srfXmCFF148isFz2RdY"))
