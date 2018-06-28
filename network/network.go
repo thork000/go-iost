@@ -266,7 +266,7 @@ func (bn *BaseNetwork) dial(nodeStr string) (*Peer, error) {
 }
 
 func dial(nodeAddr string) (net.Conn, net.Conn, error) {
-	conn, err := net.Dial("tcp4", nodeAddr)
+	conn, err := net.DialTimeout("tcp4", nodeAddr, time.Second)
 	if err != nil {
 		if conn != nil {
 			conn.Close()
@@ -274,7 +274,7 @@ func dial(nodeAddr string) (net.Conn, net.Conn, error) {
 		log.Report(&log.MsgNode{SubType: log.Subtypes["MsgNode"][2], Log: nodeAddr})
 		return nil, nil, fmt.Errorf("dial tcp %v got err:%v", nodeAddr, err)
 	}
-	blockConn, err := net.Dial("tcp4", nodeAddr)
+	blockConn, err := net.DialTimeout("tcp4", nodeAddr, time.Second)
 	if err != nil {
 		if blockConn != nil {
 			blockConn.Close()
