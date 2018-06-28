@@ -18,6 +18,8 @@ import (
 	"github.com/iost-official/prototype/core/blockcache"
 	"github.com/iost-official/prototype/core/message"
 
+	"math/rand"
+
 	"github.com/iost-official/prototype/core/state"
 	"github.com/iost-official/prototype/core/txpool"
 	"github.com/iost-official/prototype/log"
@@ -25,7 +27,6 @@ import (
 	"github.com/iost-official/prototype/vm"
 	"github.com/iost-official/prototype/vm/lua"
 	"github.com/prometheus/client_golang/prometheus"
-	"math/rand"
 )
 
 var (
@@ -234,6 +235,7 @@ func (p *PoB) blockLoop() {
 
 			p.log.I("Received block:%v ,from=%v, timestamp: %v, Witness: %v, trNum: %v", blk.Head.Number, req.From, blk.Head.Time, blk.Head.Witness, len(blk.Content))
 			localLength := p.blockCache.ConfirmedLength()
+			confirmedBlockchainLength.Set(float64(localLength))
 			if blk.Head.Number > int64(localLength)+MaxAcceptableLength {
 				// Do not accept block of too height, must wait for synchronization
 				if req.ReqType == int32(ReqNewBlock) {
@@ -297,7 +299,6 @@ func (p *PoB) scheduleLoop() {
 					if block == nil {
 						break
 					}
-					confirmedBlockchainLength.Set(float64(p.blockCache.ConfirmedLength()))
 					p.log.I("CBC ConfirmedLength: %v, block Number: %v, witness: %v", p.blockCache.ConfirmedLength(), block.Head.Number, block.Head.Witness)
 				}
 				// end test
