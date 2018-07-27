@@ -1,10 +1,10 @@
 package pob2
 
 import (
-	"github.com/iost-official/prototype/core/tx"
+	"github.com/iost-official/Go-IOS-Protocol/core/tx"
 	"sync"
 	"errors"
-	"github.com/iost-official/prototype/core/blockcache"
+	"github.com/iost-official/Go-IOS-Protocol/core/blockcache"
 )
 
 var ErrIllegalTx = errors.New("illegal tx")

@@ -95,7 +95,7 @@ func NewScript(sh string) script {
 	}
 }
 
-var scriptPath = gopath + "/src/github.com/iost-official/prototype/scripts/"
+var scriptPath = gopath + "/src/github.com/iost-official/Go-IOS-Protocol/scripts/"
 var gopath = env.Get("GOPATH", "")
 
 func makeScripts() {
