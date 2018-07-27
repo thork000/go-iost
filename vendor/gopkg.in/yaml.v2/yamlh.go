@@ -401,7 +401,7 @@ type yaml_document_t struct {
 	start_mark, end_mark yaml_mark_t
 }
 
-// The prototype of a read handler.
+// The Go-IOS-Protocol of a read handler.
 //
 // The read handler is called when the parser needs to read more bytes from the
 // source. The handler should write not more than size bytes to the buffer.
@@ -596,7 +596,7 @@ type yaml_parser_t struct {
 
 // Emitter Definitions
 
-// The prototype of a write handler.
+// The Go-IOS-Protocol of a write handler.
 //
 // The write handler is called when the emitter needs to flush the accumulated
 // characters to the output.  The handler should write @a size bytes of the
