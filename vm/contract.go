@@ -1,8 +1,8 @@
 package vm
 
 import (
-	"github.com/iost-official/prototype/proto"
-	"github.com/iost-official/prototype/vm/lua"
+	"github.com/iost-official/Go-IOS-Protocol/proto"
+	"github.com/iost-official/Go-IOS-Protocol/vm/lua"
 )
 
 func (m proto.Contract) Decode(buf []byte) Contract {

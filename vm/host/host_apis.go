@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/iost-official/prototype/common"
-	"github.com/iost-official/prototype/core/state"
-	"github.com/iost-official/prototype/log"
-	"github.com/iost-official/prototype/vm"
+	"github.com/iost-official/Go-IOS-Protocol/common"
+	"github.com/iost-official/Go-IOS-Protocol/core/state"
+	"github.com/iost-official/Go-IOS-Protocol/log"
+	"github.com/iost-official/Go-IOS-Protocol/vm"
 )
 
 var l log.Logger
