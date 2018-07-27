@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/iost-official/prototype/tx/tx"
+	"github.com/iost-official/Go-IOS-Protocol/tx/tx"
 	"github.com/urfave/cli"
 	"log"
 	"os"

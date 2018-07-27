@@ -1,7 +1,7 @@
 package state
 
 import (
-	"github.com/iost-official/prototype/iostdb"
+	"github.com/iost-official/Go-IOS-Protocol/iostdb"
 	"sync"
 )
 

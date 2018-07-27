@@ -2,9 +2,9 @@ package transaction
 
 import (
 	"encoding/hex"
-	"github.com/iost-official/prototype/iostdb"
-	"github.com/iost-official/prototype/p2p"
-	"github.com/iost-official/prototype/tx/min_framework"
+	"github.com/iost-official/Go-IOS-Protocol/iostdb"
+	"github.com/iost-official/Go-IOS-Protocol/p2p"
+	"github.com/iost-official/Go-IOS-Protocol/tx/min_framework"
 	"log"
 )
 

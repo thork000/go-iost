@@ -3,10 +3,10 @@ package core
 import (
 	"fmt"
 
-	"github.com/iost-official/prototype/common"
+	"github.com/iost-official/Go-IOS-Protocol/common"
 )
 
-//go:generate mockgen -destination mocks/mock_tx_pool.go -package core_mock github.com/iost-official/prototype/core TxPool
+//go:generate mockgen -destination mocks/mock_tx_pool.go -package core_mock github.com/iost-official/Go-IOS-Protocol/core TxPool
 
 // Tx池，因为需要装入Block中所以需要serializable
 type TxPool interface {

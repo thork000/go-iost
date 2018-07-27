@@ -4,7 +4,7 @@ import (
 	"crypto/ecdsa"
 	"net"
 
-	"github.com/iost-official/prototype/p2p/discover"
+	"github.com/iost-official/Go-IOS-Protocol/p2p/discover"
 )
 
 type connFlag int

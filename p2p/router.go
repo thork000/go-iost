@@ -2,7 +2,7 @@ package p2p
 
 import (
 	"fmt"
-	"github.com/iost-official/prototype/core"
+	"github.com/iost-official/Go-IOS-Protocol/core"
 )
 
 /*

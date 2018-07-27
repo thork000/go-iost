@@ -1,6 +1,6 @@
 package core
 
-import "github.com/iost-official/prototype/common"
+import "github.com/iost-official/Go-IOS-Protocol/common"
 
 func (d *UTXO) Encode() []byte {
 	bin, err := d.Marshal(nil)

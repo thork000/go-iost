@@ -4,7 +4,7 @@ package pow
 //import (
 //	"encoding/binary"
 //	"fmt"
-//	"github.com/iost-official/prototype/core"
+//	"github.com/iost-official/Go-IOS-Protocol/core"
 //	"math"
 //	"time"
 //)

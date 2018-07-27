@@ -1,6 +1,6 @@
 package state
 
-import "github.com/iost-official/prototype/iostdb"
+import "github.com/iost-official/Go-IOS-Protocol/iostdb"
 
 type Database struct {
 	db iostdb.Database

@@ -3,9 +3,9 @@ package pow
 //
 //import (
 //	"encoding/binary"
-//	"github.com/iost-official/prototype/core"
+//	"github.com/iost-official/Go-IOS-Protocol/core"
 //	"time"
-//	. "github.com/iost-official/prototype/p2p"
+//	. "github.com/iost-official/Go-IOS-Protocol/p2p"
 //)
 //
 //type Pow struct {

@@ -16,7 +16,7 @@ type Request struct {
 //	Description string
 //}
 
-//go:generate mockgen -destination mocks/mock_network.go -package core_mock github.com/iost-official/prototype/core Network
+//go:generate mockgen -destination mocks/mock_network.go -package core_mock github.com/iost-official/Go-IOS-Protocol/core Network
 
 type Network interface {
 	Send(req Request)

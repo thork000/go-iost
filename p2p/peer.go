@@ -1,9 +1,9 @@
 package p2p
 
 import (
-	"github.com/iost-official/prototype/common/mclock"
-	"github.com/iost-official/prototype/event"
-	"github.com/iost-official/prototype/p2p/discover"
+	"github.com/iost-official/Go-IOS-Protocol/common/mclock"
+	"github.com/iost-official/Go-IOS-Protocol/event"
+	"github.com/iost-official/Go-IOS-Protocol/p2p/discover"
 	"io"
 	"log"
 	"os"

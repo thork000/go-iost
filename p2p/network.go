@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/iost-official/prototype/iostdb"
+	"github.com/iost-official/Go-IOS-Protocol/iostdb"
 	"io/ioutil"
 	"net"
 	"os"

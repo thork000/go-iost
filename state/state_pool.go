@@ -5,7 +5,7 @@ import (
 )
 
 //go:generate gencode go -schema=structs.schema -package=state
-//go:generate mockgen -destination mocks/mock_pool.go -package state_mock github.com/iost-official/prototype/state Pool
+//go:generate mockgen -destination mocks/mock_pool.go -package state_mock github.com/iost-official/Go-IOS-Protocol/state Pool
 
 type Pool interface {
 	Copy() Pool
