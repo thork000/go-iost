@@ -5,8 +5,8 @@ import (
 
 	"encoding/binary"
 
-	"github.com/iost-official/prototype/db"
-	"github.com/iost-official/prototype/vm"
+	"github.com/iost-official/Go-IOS-Protocol/db"
+	"github.com/iost-official/Go-IOS-Protocol/vm"
 )
 
 const base float64 = 1.0
