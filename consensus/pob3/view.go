@@ -3,7 +3,7 @@ package pob3
 import (
 	"time"
 
-	"github.com/iost-official/prototype/account"
+	"github.com/iost-official/Go-IOS-Protocol/account"
 )
 
 type WitnessView interface {

@@ -30,7 +30,7 @@ type ErrorHandlerFunc func(error)
 // functions. The default is LogFatalHandler.
 var ErrorHandler ErrorHandlerFunc = LogFatalHandler
 
-// LogHandlerFunc defines the function prototype for logging errors.
+// LogHandlerFunc defines the function Go-IOS-Protocol for logging errors.
 type LogHandlerFunc func(fmt string, args ...interface{})
 
 // LogPrintf defines a log handler which uses log.Printf.

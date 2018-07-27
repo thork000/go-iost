@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iost-official/prototype/account"
-	"github.com/iost-official/prototype/core/message"
-	"github.com/iost-official/prototype/network"
+	"github.com/iost-official/Go-IOS-Protocol/account"
+	"github.com/iost-official/Go-IOS-Protocol/core/message"
+	"github.com/iost-official/Go-IOS-Protocol/network"
 )
 
 const (

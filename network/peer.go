@@ -1,8 +1,8 @@
 package network
 
 import (
-	"github.com/iost-official/prototype/common/mclock"
-	"github.com/iost-official/prototype/network/discover"
+	"github.com/iost-official/Go-IOS-Protocol/common/mclock"
+	"github.com/iost-official/Go-IOS-Protocol/network/discover"
 	"net"
 	"sync"
 )
