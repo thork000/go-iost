@@ -13,7 +13,7 @@ genesis:
     - "13100000000"
 
 vm:
-  logLevel: ""
+  logLevel: "debug"
   jsPath: "vm/v8vm/v8/libjs/"
 db:
   ldbpath: "leveldb/"

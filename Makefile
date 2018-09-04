@@ -58,9 +58,12 @@ clean:
 
 debug: build
 	target/iserver -f config/iserver.yaml
-
 clear_debug_file:
 	rm -rf StatePoolDB/
 	rm -rf leveldb/
 	rm priv.key
 	rm routing.table
+
+deploy:
+	target/iwallet compile -e 1000000 -l 1000 -p 1 ./vm/test_data/lucky_bet.js ./vm/test_data/lucky_bet.js.abi
+
