@@ -61,7 +61,9 @@ func (vmp *VMPool) SetJSPath(path string) {
 // Compile compile js code to binary.
 func (vmp *VMPool) Compile(contract *contract.Contract) (string, error) {
 	vm := vmp.getCompileVM()
-	defer vm.recycle()
+	defer func() {
+		go vm.recycle()
+	}()
 
 	return vm.compile(contract)
 }
@@ -69,7 +71,9 @@ func (vmp *VMPool) Compile(contract *contract.Contract) (string, error) {
 // LoadAndCall load compiled Javascript code and run code with specified api and args
 func (vmp *VMPool) LoadAndCall(host *host.Host, contract *contract.Contract, api string, args ...interface{}) (rtn []interface{}, cost *contract.Cost, err error) {
 	vm := vmp.getRunVM()
-	defer vm.recycle()
+	defer func() {
+		go vm.recycle()
+	}()
 
 	vm.setHost(host)
 	preparedCode, _ := vm.setContract(contract, api, args)

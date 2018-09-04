@@ -1,4 +1,5 @@
 #include "compile.h"
+#include <iostream>
 
 static char injectGasFormat[] =
     "(function(){\n"
@@ -22,7 +23,7 @@ int compile(SandboxPtr ptr, const char *code, const char **compiledCode) {
 
     Local<String> source = String::NewFromUtf8(isolate, injectCode, NewStringType::kNormal).ToLocalChecked();
     free(injectCode);
-    Local<String> fileName = String::NewFromUtf8(isolate, "__inject_ga.js", NewStringType::kNormal).ToLocalChecked();
+    Local<String> fileName = String::NewFromUtf8(isolate, "__inject_gas.js", NewStringType::kNormal).ToLocalChecked();
     Local<Script> script = Script::Compile(source, fileName);
 
     if (!script.IsEmpty()) {
