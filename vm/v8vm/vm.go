@@ -97,13 +97,13 @@ func (e *VM) setReleaseChannel(releaseChannel chan *VM) {
 func (e *VM) recycle() {
 	// first release sandbox
 	if e.sandbox != nil {
-		e.sandbox.Release()
+		//e.sandbox.Release()
 	}
 	// then gen new sandbox
-	e.sandbox = NewSandbox(e)
-	if e.releaseChannel != nil {
-		e.releaseChannel <- e
-	}
+	//e.sandbox = NewSandbox(e)
+	//if e.releaseChannel != nil {
+	//	e.releaseChannel <- e
+	//}
 }
 
 // Release release all engine associate resource

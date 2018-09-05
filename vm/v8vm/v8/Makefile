@@ -1,6 +1,6 @@
-CFLAGS=-g -fPIC -m64 -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -O2
+CFLAGS=-fPIC -m64 -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -O3
 
-CXXFLAGS=-g -std=c++11 -fno-rtti -fPIC -m64 -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -O2
+CXXFLAGS=-std=c++11 -fno-rtti -fPIC -m64 -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -O3
 
 LDFLAGS=-fvisibility=hidden
 
@@ -34,7 +34,7 @@ else
 endif
 
 vm: vm.cc.o console.cc.o require.cc.o storage.cc.o blockchain.cc.o sandbox.cc.o instruction.cc.o compile.cc.o
-	$(LD) -g -shared $(LDFLAGS) $^ -o libvm$(LIB_SUFFIX) -L$(LIB_PATH) $(LIBS)
+	$(LD) -shared $(LDFLAGS) $^ -o libvm$(LIB_SUFFIX) -L$(LIB_PATH) $(LIBS)
 
 %.cc.o: %.cc
 	$(CXX) $(CXXFLAGS) -c $< -o $<.o

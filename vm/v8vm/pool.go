@@ -1,11 +1,17 @@
 package v8
 
 import (
+	"fmt"
 	"github.com/iost-official/Go-IOS-Protocol/core/contract"
 	"github.com/iost-official/Go-IOS-Protocol/vm/host"
+	"time"
 )
 
 type vmPoolType int
+
+var timeAll int64
+var aAll int64
+var bAll int64
 
 const (
 	CompileVMPool vmPoolType = iota
@@ -70,15 +76,31 @@ func (vmp *VMPool) Compile(contract *contract.Contract) (string, error) {
 
 // LoadAndCall load compiled Javascript code and run code with specified api and args
 func (vmp *VMPool) LoadAndCall(host *host.Host, contract *contract.Contract, api string, args ...interface{}) (rtn []interface{}, cost *contract.Cost, err error) {
+	a := time.Now()
 	vm := vmp.getRunVM()
-	defer func() {
-		go vm.recycle()
-	}()
+	timeAll += time.Since(a).Nanoseconds()
+	//defer func() {
+	//	go vm.recycle()
+	//}()
 
+	b := time.Now()
 	vm.setHost(host)
+	//a := time.Now()
 	preparedCode, _ := vm.setContract(contract, api, args)
+	//fmt.Println("pre time: ", time.Since(a))
+	aAll += time.Since(b).Nanoseconds()
 
-	return vm.execute(preparedCode)
+	c := time.Now()
+	x, y, z := vm.execute(preparedCode)
+	bAll += time.Since(c).Nanoseconds()
+
+	return x, y, z
+}
+
+func Printaa() {
+	fmt.Println("get: ", timeAll/1000)
+	fmt.Println("a: ", aAll/1000)
+	fmt.Println("b: ", bAll/1000)
 }
 
 // Release release all V8VM instance in VMPool

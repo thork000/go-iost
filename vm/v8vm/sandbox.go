@@ -33,7 +33,11 @@ import (
 
 	"github.com/iost-official/Go-IOS-Protocol/core/contract"
 	"github.com/iost-official/Go-IOS-Protocol/vm/host"
+	"sync"
+	"time"
 )
+
+var aa int64
 
 // Sandbox is an execution environment that allows separate, unrelated, JavaScript
 // code to run in a single instance of IVM.
@@ -45,11 +49,15 @@ type Sandbox struct {
 	host    *host.Host
 }
 
-var sbxMap = make(map[C.SandboxPtr]*Sandbox)
+var sbxMap sync.Map
 
 // GetSandbox from sandbox map by sandbox ptr
 func GetSandbox(cSbx C.SandboxPtr) (*Sandbox, bool) {
-	sbx, ok := sbxMap[cSbx]
+	val, ok := sbxMap.Load(cSbx)
+	if !ok {
+		return nil, ok
+	}
+	sbx, ok := val.(*Sandbox)
 	return sbx, ok
 }
 
@@ -66,7 +74,7 @@ func NewSandbox(e *VM) *Sandbox {
 		modules: NewModules(),
 	}
 	s.Init(e.vmType)
-	sbxMap[cSbx] = s
+	sbxMap.Store(cSbx, s)
 
 	return s
 }
@@ -74,7 +82,7 @@ func NewSandbox(e *VM) *Sandbox {
 // Release release sandbox and delete from map
 func (sbx *Sandbox) Release() {
 	if sbx.context != nil {
-		delete(sbxMap, sbx.context)
+		sbxMap.Delete(sbx.context)
 		C.releaseSandbox(sbx.context)
 	}
 	sbx.context = nil
@@ -148,10 +156,10 @@ func (sbx *Sandbox) Compile(contract *contract.Contract) (string, error) {
 
 // Prepare for contract, inject code
 func (sbx *Sandbox) Prepare(contract *contract.Contract, function string, args []interface{}) (string, error) {
-	name := contract.ID
+	//name := contract.ID
 	code := contract.Code
 
-	sbx.SetModule(name, code)
+	//sbx.SetModule(name, code)
 
 	if function == "constructor" {
 		return fmt.Sprintf(`
@@ -168,10 +176,21 @@ ret;
 `, code), nil
 	}
 
-	argStr, err := formatFuncArgs(args)
-	if err != nil {
-		return "", err
-	}
+	//argStr, err := formatFuncArgs(args)
+	//if err != nil {
+	//	return "", err
+	//}
+
+	code += `;
+var obj = new module.exports;
+// var objObserver = observer.create(obj);
+// run contract with specified function and args
+obj.` + function + "();"
+	//objObserver.` + function + "(32);"
+
+	return code, nil
+
+	argStr := ""
 
 	return fmt.Sprintf(`
 %s;
@@ -189,7 +208,10 @@ func (sbx *Sandbox) Execute(preparedCode string) (string, int64, error) {
 	cCode := C.CString(preparedCode)
 	defer C.free(unsafe.Pointer(cCode))
 
+	a := time.Now()
 	rs := C.Execute(sbx.context, cCode)
+	aa += time.Since(a).Nanoseconds()
+	fmt.Println("single time used: ", time.Since(a))
 
 	result := C.GoString(rs.Value)
 	defer C.free(unsafe.Pointer(rs.Value))
@@ -203,6 +225,10 @@ func (sbx *Sandbox) Execute(preparedCode string) (string, int64, error) {
 	gasUsed := rs.gasUsed
 
 	return result, int64(gasUsed), err
+}
+
+func RealRun() {
+	fmt.Println(aa / 1000)
 }
 
 func formatFuncArgs(args []interface{}) (string, error) {
