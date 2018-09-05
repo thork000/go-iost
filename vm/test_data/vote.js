@@ -4,6 +4,12 @@ class VoteContract {
 		this.producerNumber = 7;
 		this.preProducerThreshold = 2100 * 10000;
 		this.voteLockTime = 200;
+        this.preProducerMap = {};
+        this.currentProducerList = [];
+        this.pendingProducerList = [];
+        this.pendingBlockNumber = 0;
+        this.producerTable = {}
+        this.voteTable = {}
     }
 
     Init() {

@@ -8,8 +8,8 @@ import (
 var bonusABIs map[string]*abi
 
 func init() {
-	coinABIs = make(map[string]*abi)
-	register(&coinABIs, createCoin)
+	bonusABIs = make(map[string]*abi)
+	register(&bonusABIs, claimBonus)
 }
 
 var (
@@ -20,6 +20,12 @@ var (
 			cost = contract.Cost0()
 			acc := args[0].(string)
 			amount := args[1].(int64)
+
+			ok, cost0 := h.RequireAuth(acc)
+			cost.AddAssign(cost0)
+			if !ok {
+				return nil, cost, host.ErrPermissionLost
+			}
 
 			totalServi, cost0 := h.TotalServi()
 			cost.AddAssign(cost0)
@@ -38,6 +44,9 @@ var (
 			token := int64(amount * 1.0 / totalServi * bl)
 			if token > bl {
 				token = bl
+			}
+			if token <= 0 {
+				return []interface{}{}, cost, nil
 			}
 
 			cost0, err = h.Withdraw(acc, token)
