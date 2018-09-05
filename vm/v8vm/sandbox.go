@@ -28,9 +28,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"unsafe"
-
 	"strings"
+	"unsafe"
 
 	"github.com/iost-official/Go-IOS-Protocol/core/contract"
 	"github.com/iost-official/Go-IOS-Protocol/vm/host"

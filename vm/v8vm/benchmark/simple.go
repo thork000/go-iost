@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/iost-official/Go-IOS-Protocol/core/contract"
 	"github.com/iost-official/Go-IOS-Protocol/ilog"
 	"github.com/iost-official/Go-IOS-Protocol/vm/database"
 	"github.com/iost-official/Go-IOS-Protocol/vm/host"
 	"github.com/iost-official/Go-IOS-Protocol/vm/v8vm"
-	"github.com/prometheus/common/log"
-	"time"
 )
 
 var vmPool *v8.VMPool
@@ -69,7 +70,7 @@ func main() {
 	}
 
 	timeUsed := time.Since(a).Nanoseconds()
-	each := float64(timeUsed) / 1000000 / times
+	tps := int(1000 / (float64(timeUsed) / 1000000 / times))
 	fmt.Println("time used: ", time.Since(a))
-	fmt.Println("each: ", each)
+	fmt.Println("each: ", tps)
 }
