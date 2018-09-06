@@ -28,9 +28,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"unsafe"
-
 	"strings"
+	"sync"
+	"unsafe"
 
 	"github.com/iost-official/Go-IOS-Protocol/core/contract"
 	"github.com/iost-official/Go-IOS-Protocol/vm/host"
@@ -46,11 +46,15 @@ type Sandbox struct {
 	host    *host.Host
 }
 
-var sbxMap = make(map[C.SandboxPtr]*Sandbox)
+var sbxMap sync.Map
 
 // GetSandbox from sandbox map by sandbox ptr
 func GetSandbox(cSbx C.SandboxPtr) (*Sandbox, bool) {
-	sbx, ok := sbxMap[cSbx]
+	val, ok := sbxMap.Load(cSbx)
+	if !ok {
+		return nil, ok
+	}
+	sbx, ok := val.(*Sandbox)
 	return sbx, ok
 }
 
@@ -67,7 +71,7 @@ func NewSandbox(e *VM) *Sandbox {
 		modules: NewModules(),
 	}
 	s.Init(e.vmType)
-	sbxMap[cSbx] = s
+	sbxMap.Store(cSbx, s)
 
 	return s
 }
@@ -75,7 +79,7 @@ func NewSandbox(e *VM) *Sandbox {
 // Release release sandbox and delete from map
 func (sbx *Sandbox) Release() {
 	if sbx.context != nil {
-		delete(sbxMap, sbx.context)
+		sbxMap.Delete(sbx.context)
 		C.releaseSandbox(sbx.context)
 	}
 	sbx.context = nil
@@ -149,10 +153,7 @@ func (sbx *Sandbox) Compile(contract *contract.Contract) (string, error) {
 
 // Prepare for contract, inject code
 func (sbx *Sandbox) Prepare(contract *contract.Contract, function string, args []interface{}) (string, error) {
-	name := contract.ID
 	code := contract.Code
-
-	sbx.SetModule(name, code)
 
 	if function == "constructor" {
 		return fmt.Sprintf(`
@@ -169,6 +170,11 @@ ret;
 `, code), nil
 	}
 
+	code += `
+	var obj = new module.exports;
+	obj.` + function + "();"
+	return code, nil
+
 	argStr, err := formatFuncArgs(args)
 	if err != nil {
 		return "", err
@@ -177,11 +183,11 @@ ret;
 	return fmt.Sprintf(`
 %s;
 var obj = new module.exports;
-
-var objObserver = observer.create(obj)
+obj.%s(%s)
+//var objObserver = observer.create(obj)
 
 // run contract with specified function and args
-objObserver.%s(%s)
+
 `, code, function, strings.Trim(argStr, "[]")), nil
 }
 
