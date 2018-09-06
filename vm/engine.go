@@ -129,15 +129,17 @@ func (e *engineImpl) SetUp(k, v string) error {
 	return nil
 }
 func (e *engineImpl) Exec(tx0 *tx.Tx) (*tx.TxReceipt, error) {
-	e.ho.Logger().Debug("exec : ", tx0.Actions[0].Contract, tx0.Actions[0].ActionName)
+	e.ho.Logger().Info("exec : ", tx0.Actions[0].Contract, ".", tx0.Actions[0].ActionName)
 	err := checkTx(tx0)
 	if err != nil {
+		e.ho.Logger().Error("illegal tx ", err)
 		return errReceipt(tx0.Hash(), tx.ErrorTxFormat, err.Error()), err
 	}
 
 	bl := e.ho.DB().Balance(account.GetIDByPubkey(tx0.Publisher.Pubkey))
 
 	if bl < 0 || bl < tx0.GasPrice*tx0.GasLimit {
+		e.ho.Logger().Error("publisher cannot pay tx ", bl)
 		return errReceipt(tx0.Hash(), tx.ErrorBalanceNotEnough, "publisher's balance less than price * limit"), errCannotPay
 	}
 
