@@ -1,6 +1,6 @@
  CFLAGS=-g -fPIC -m64 -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -O3
 
-CXXFLAGS=-g -std=c++11 -fno-rtti -fPIC -m64 -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -O3 -I./include/common
+CXXFLAGS=-g -std=c++11 -fno-rtti -fPIC -m64 -Wall -Wextra -Wno-unused-parameter -Wno-unused-result -O3 -I./include/common -I./libjs/include
 
 LDFLAGS=-fvisibility=hidden
 
@@ -38,6 +38,15 @@ vm: vm.cc.o console.cc.o require.cc.o storage.cc.o blockchain.cc.o sandbox.cc.o 
 
 %.cc.o: %.cc
 	$(CXX) $(CXXFLAGS) -c $< -o $<.o
+
+js_bin:
+	-xxd -i libjs/storage.js libjs/include/storage.h
+	-xxd -i libjs/bignumber.js libjs/include/bignumber.h
+	-xxd -i libjs/blockchain.js libjs/include/blockchain.h
+	-xxd -i libjs/console.js libjs/include/console.h
+	-xxd -i libjs/int64.js libjs/include/int64.h
+	-xxd -i libjs/storage.js libjs/include/storage.h
+	-xxd -i libjs/utils.js libjs/include/utils.h
 
 install:
 	-mv libvm$(LIB_SUFFIX) $(INSTALL_PATH)

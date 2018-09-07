@@ -19,6 +19,11 @@ typedef struct {
     size_t gasUsed;
 } ValueTuple;
 
+typedef struct {
+    const char *data;
+    int raw_size;
+} CustomStartupData;
+
 typedef enum {
     kUndefined = 0,
     kNull,
@@ -127,6 +132,7 @@ extern void goGlobalMapKeys(SandboxPtr, const char *, const char *, size_t *);
 extern void goGlobalMapLen(SandboxPtr, const char *, const char *, size_t *);
 
 extern int compile(SandboxPtr, const char *code, const char **compiledCode);
+extern CustomStartupData createStartupData();
 
 #ifdef __cplusplus
 }
