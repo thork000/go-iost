@@ -50,14 +50,15 @@ void NewIOSTContractStorage(const FunctionCallbackInfo<Value> &args) {
     Local<Context> context = isolate->GetCurrentContext();
     Local<Object> global = context->Global();
 
-    Local<Value> val = global->GetInternalField(0);
-    if (!val->IsExternal()) {
-           std::cout << "NewIOSTContractStorage val error" << std::endl;
-        return;
-    }
-    SandboxPtr sbx = static_cast<SandboxPtr>(Local<External>::Cast(val)->Value());
+//    Local<Value> val = global->GetInternalField(0);
+//    if (!val->IsExternal()) {
+//           std::cout << "NewIOSTContractStorage val error" << std::endl;
+//        return;
+//    }
+//    SandboxPtr sbx = static_cast<SandboxPtr>(Local<External>::Cast(val)->Value());
 
-    IOSTContractStorage *ics = new IOSTContractStorage(sbx);
+//    IOSTContractStorage *ics = new IOSTContractStorage(sbx);
+    IOSTContractStorage *ics = new IOSTContractStorage(nullptr);
 
     Local<Object> self = args.Holder();
     self->SetInternalField(0, External::New(isolate, ics));

@@ -102,7 +102,7 @@ func (sbx *Sandbox) Init(vmType vmPoolType) {
 		(C.getFunc)(C.goGet),
 		(C.delFunc)(C.goDel),
 		(C.globalGetFunc)(C.goGlobalGet))
-	C.loadVM(sbx.context, C.int(vmType))
+	//C.loadVM(sbx.context, C.int(vmType))
 }
 
 // SetGasLimit set gas limit in context
@@ -178,10 +178,8 @@ ret;
 %s;
 var obj = new module.exports;
 
-var objObserver = observer.create(obj)
-
 // run contract with specified function and args
-objObserver.%s(%s)
+obj.%s(%s)
 `, code, function, strings.Trim(argStr, "[]")), nil
 }
 

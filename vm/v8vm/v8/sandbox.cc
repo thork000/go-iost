@@ -111,12 +111,17 @@ SandboxPtr newSandbox(IsolatePtr ptr) {
     Isolate::Scope isolate_scope(isolate);
     HandleScope handle_scope(isolate);
 
-    Local<ObjectTemplate> globalTpl = createGlobalTpl(isolate);
+//    Local<ObjectTemplate> globalTpl = createGlobalTpl(isolate);
+    Local<ObjectTemplate> globalTpl = ObjectTemplate::New(isolate);
+    globalTpl->SetInternalFieldCount(1);
+
     Local<Context> context = Context::New(isolate, NULL, globalTpl);
     Context::Scope context_scope(context);
 
     Sandbox *sbx = new Sandbox();
     Local<Object> global = context->Global();
+//    global->SetInternalFieldCount(1);
+    std::cout << "fuckit111 : " << global->InternalFieldCount() << std::endl;
     global->SetInternalField(0, External::New(isolate, sbx));
 
     sbx->context.Reset(isolate, context);

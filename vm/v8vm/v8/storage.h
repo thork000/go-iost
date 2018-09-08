@@ -9,6 +9,11 @@ using namespace v8;
 void InitStorage(Isolate *isolate, Local<ObjectTemplate> globalTpl);
 void NewIOSTContractStorage(const FunctionCallbackInfo<Value> &info);
 
+void IOSTContractStorage_Put(const FunctionCallbackInfo<Value> &args);
+void IOSTContractStorage_Get(const FunctionCallbackInfo<Value> &args);
+void IOSTContractStorage_Del(const FunctionCallbackInfo<Value> &args);
+void IOSTContractStorage_GGet(const FunctionCallbackInfo<Value> &args);
+
 class IOSTContractStorage {
 private:
     SandboxPtr sbxPtr;

@@ -4,6 +4,11 @@
 #include "snapshot_blob.bin.h"
 #include "natives_blob.bin.h"
 
+#include "console.h"
+#include "storage.h"
+#include "blockchain.h"
+#include "instruction.h"
+
 #include "libplatform/libplatform.h"
 
 #include <assert.h>
@@ -11,6 +16,13 @@
 #include <stdio.h>
 
 using namespace v8;
+
+intptr_t externalRefx[] = {
+        reinterpret_cast<intptr_t>(NewConsoleLog),
+        reinterpret_cast<intptr_t>(NewIOSTContractStorage),
+        reinterpret_cast<intptr_t>(NewIOSTBlockchain),
+        reinterpret_cast<intptr_t>(NewIOSTContractInstruction),
+        0};
 
 void init() {
     V8::InitializeICU();
@@ -30,10 +42,18 @@ void init() {
     return;
 }
 
-IsolatePtr newIsolate() {
-  Isolate::CreateParams create_params;
-  create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
-  return static_cast<IsolatePtr>(Isolate::New(create_params));
+IsolatePtr newIsolate(CustomStartupData customStartupData) {
+  Isolate::CreateParams params;
+
+  StartupData* blob = new StartupData;
+  blob->data = customStartupData.data;
+  blob->raw_size = customStartupData.raw_size;
+
+  params.snapshot_blob = blob;
+  params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
+  params.external_references = externalRefx;
+
+  return static_cast<IsolatePtr>(Isolate::New(params));
 }
 
 void releaseIsolate(IsolatePtr ptr) {

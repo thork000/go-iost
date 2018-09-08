@@ -73,6 +73,7 @@ func (vmp *VMPool) LoadAndCall(host *host.Host, contract *contract.Contract, api
 
 	vm.setHost(host)
 	preparedCode, _ := vm.setContract(contract, api, args)
+	println("prec: ", preparedCode)
 
 	return vm.execute(preparedCode)
 }

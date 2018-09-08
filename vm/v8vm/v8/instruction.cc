@@ -6,14 +6,16 @@ void NewIOSTContractInstruction(const FunctionCallbackInfo<Value> &args) {
     Local<Context> context = isolate->GetCurrentContext();
     Local<Object> global = context->Global();
 
-    Local<Value> val = global->GetInternalField(0);
-    if (!val->IsExternal()) {
-           std::cout << "NewIOSTContractInstruction val error" << std::endl;
-        return;
-    }
-    SandboxPtr sbx = static_cast<SandboxPtr>(Local<External>::Cast(val)->Value());
 
-    IOSTContractInstruction *ici = new IOSTContractInstruction(sbx);
+//    Local<Value> val = global->GetInternalField(0);
+//    if (!val->IsExternal()) {
+//           std::cout << "NewIOSTContractInstruction val error" << std::endl;
+//        return;
+//    }
+//    SandboxPtr sbx = static_cast<SandboxPtr>(Local<External>::Cast(val)->Value());
+
+//    IOSTContractInstruction *ici = new IOSTContractInstruction(sbx);
+    IOSTContractInstruction *ici = new IOSTContractInstruction(nullptr);
 
     Local<Object> self = args.Holder();
     self->SetInternalField(0, External::New(isolate, ici));

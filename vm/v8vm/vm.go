@@ -8,13 +8,13 @@ package v8
 */
 import "C"
 import (
-	"sync"
-
 	"github.com/iost-official/Go-IOS-Protocol/core/contract"
 	"github.com/iost-official/Go-IOS-Protocol/vm/host"
+	"sync"
 )
 
 var CVMInitOnce = sync.Once{}
+var customStartupData C.CustomStartupData
 
 // VM contains isolate instance, which is a v8 VM with its own heap.
 type VM struct {
@@ -31,8 +31,9 @@ type VM struct {
 func NewVM(vmType vmPoolType, jsPath string) *VM {
 	CVMInitOnce.Do(func() {
 		C.init()
+		customStartupData = C.createStartupData()
 	})
-	isolate := C.newIsolate()
+	isolate := C.newIsolate(customStartupData)
 	e := &VM{
 		isolate: isolate,
 		vmType:  vmType,

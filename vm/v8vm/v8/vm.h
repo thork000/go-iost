@@ -76,7 +76,7 @@ typedef enum {
 } Kind;
 
 extern void init();
-extern IsolatePtr newIsolate();
+extern IsolatePtr newIsolate(CustomStartupData);
 extern void releaseIsolate(IsolatePtr ptr);
 
 extern SandboxPtr newSandbox(IsolatePtr ptr);

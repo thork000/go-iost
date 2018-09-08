@@ -141,14 +141,15 @@ void NewIOSTBlockchain(const FunctionCallbackInfo<Value> &args) {
     Local<Context> context = isolate->GetCurrentContext();
     Local<Object> global = context->Global();
 
-    Local<Value> val = global->GetInternalField(0);
-    if (!val->IsExternal()) {
-           std::cout << "NewIOSTBlockchain val error" << std::endl;
-        return;
-    }
-    SandboxPtr sbx = static_cast<SandboxPtr>(Local<External>::Cast(val)->Value());
+//    Local<Value> val = global->GetInternalField(0);
+//    if (!val->IsExternal()) {
+//           std::cout << "NewIOSTBlockchain val error" << std::endl;
+//        return;
+//    }
+//    SandboxPtr sbx = static_cast<SandboxPtr>(Local<External>::Cast(val)->Value());
 
-    IOSTBlockchain *bc = new IOSTBlockchain(sbx);
+//    IOSTBlockchain *bc = new IOSTBlockchain(sbx);
+    IOSTBlockchain *bc = new IOSTBlockchain(nullptr);
 
     Local<Object> self = args.Holder();
     self->SetInternalField(0, External::New(isolate, bc));
