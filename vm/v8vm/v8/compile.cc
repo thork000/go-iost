@@ -23,8 +23,7 @@ static char codeFormat[] =
         "%s\n"  // load Int64
         "%s\n"  // load util
         "%s\n"  // load console
-        "%s\n"  // load storage
-        "%s\n"; // load blockchain
+        "%s\n";  // load storage
 
 int compile(SandboxPtr ptr, const char *code, const char **compiledCode) {
     Sandbox *sbx = static_cast<Sandbox*>(ptr);
@@ -99,8 +98,7 @@ CustomStartupData createStartupData() {
         int64js,
         utilsjs,
         consolejs,
-        storagejs,
-        blockchainjs);
+        storagejs);
 
     StartupData blob;
     {
@@ -118,80 +116,80 @@ CustomStartupData createStartupData() {
             Local<FunctionTemplate> storageClass =
                     FunctionTemplate::New(isolate, NewIOSTContractStorage);
             Local<String> storageClassName = String::NewFromUtf8(isolate, "IOSTStorage");
-            storageClass->SetClassName(storageClassName);
+//            storageClass->SetClassName(storageClassName);
 
-            Local<ObjectTemplate> storageTpl = storageClass->InstanceTemplate();
-            storageTpl->SetInternalFieldCount(1);
-            storageTpl->Set(
-                String::NewFromUtf8(isolate, "put"),
-                FunctionTemplate::New(isolate, IOSTContractStorage_Put)
-            );
-            storageTpl->Set(
-                String::NewFromUtf8(isolate, "get"),
-                FunctionTemplate::New(isolate, IOSTContractStorage_Get)
-            );
-            storageTpl->Set(
-                    String::NewFromUtf8(isolate, "del"),
-                    FunctionTemplate::New(isolate, IOSTContractStorage_Del)
-            );
-            storageTpl->Set(
-                String::NewFromUtf8(isolate, "globalGet"),
-                FunctionTemplate::New(isolate, IOSTContractStorage_GGet)
-            );
+//            Local<ObjectTemplate> storageTpl = storageClass->InstanceTemplate();
+//            storageTpl->SetInternalFieldCount(1);
+//            storageTpl->Set(
+//                String::NewFromUtf8(isolate, "put"),
+//                FunctionTemplate::New(isolate, IOSTContractStorage_Put)
+//            );
+//            storageTpl->Set(
+//                String::NewFromUtf8(isolate, "get"),
+//                FunctionTemplate::New(isolate, IOSTContractStorage_Get)
+//            );
+//            storageTpl->Set(
+//                    String::NewFromUtf8(isolate, "del"),
+//                    FunctionTemplate::New(isolate, IOSTContractStorage_Del)
+//            );
+//            storageTpl->Set(
+//                String::NewFromUtf8(isolate, "globalGet"),
+//                FunctionTemplate::New(isolate, IOSTContractStorage_GGet)
+//            );
             globalTpl->Set(storageClassName, storageClass);
 
-            Local<FunctionTemplate> blockchainClass =
-                FunctionTemplate::New(isolate, NewIOSTBlockchain);
-            Local<String> blockchainClassName = String::NewFromUtf8(isolate, "IOSTBlockchain");
-            blockchainClass->SetClassName(blockchainClassName);
-
-            Local<ObjectTemplate> blockchainTpl = blockchainClass->InstanceTemplate();
-            blockchainTpl->SetInternalFieldCount(1);
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "transfer"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_transfer)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "withdraw"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_withdraw)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "deposit"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_deposit)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "topUp"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_topUp)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "countermand"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_countermand)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "blockInfo"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_blockInfo)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "txInfo"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_txInfo)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "call"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_call)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "callWithReceipt"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_callWithReceipt)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "requireAuth"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_requireAuth)
-            );
-            blockchainTpl->Set(
-                String::NewFromUtf8(isolate, "grantServi"),
-                FunctionTemplate::New(isolate, IOSTBlockchain_grantServi)
-            );
-            globalTpl->Set(blockchainClassName, blockchainClass);
+//            Local<FunctionTemplate> blockchainClass =
+//                FunctionTemplate::New(isolate, NewIOSTBlockchain);
+//            Local<String> blockchainClassName = String::NewFromUtf8(isolate, "IOSTBlockchain");
+//            blockchainClass->SetClassName(blockchainClassName);
+//
+//            Local<ObjectTemplate> blockchainTpl = blockchainClass->InstanceTemplate();
+//            blockchainTpl->SetInternalFieldCount(1);
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "transfer"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_transfer)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "withdraw"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_withdraw)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "deposit"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_deposit)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "topUp"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_topUp)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "countermand"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_countermand)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "blockInfo"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_blockInfo)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "txInfo"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_txInfo)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "call"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_call)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "callWithReceipt"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_callWithReceipt)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "requireAuth"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_requireAuth)
+//            );
+//            blockchainTpl->Set(
+//                String::NewFromUtf8(isolate, "grantServi"),
+//                FunctionTemplate::New(isolate, IOSTBlockchain_grantServi)
+//            );
+//            globalTpl->Set(blockchainClassName, blockchainClass);
 
 //            Local<FunctionTemplate> instructionClass =
 //                FunctionTemplate::New(isolate, NewIOSTContractInstruction);
