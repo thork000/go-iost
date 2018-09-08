@@ -6,13 +6,14 @@ import (
 	"sync"
 
 	"encoding/json"
+	"strconv"
+
 	"github.com/iost-official/Go-IOS-Protocol/common"
 	"github.com/iost-official/Go-IOS-Protocol/core/block"
 	"github.com/iost-official/Go-IOS-Protocol/core/global"
 	"github.com/iost-official/Go-IOS-Protocol/db"
 	"github.com/iost-official/Go-IOS-Protocol/ilog"
 	"github.com/iost-official/Go-IOS-Protocol/vm/database"
-	"strconv"
 )
 
 type CacheStatus int
@@ -57,7 +58,16 @@ func (wl *WitnessList) Pending() []string {
 
 // Active get active witness list
 func (wl *WitnessList) Active() []string {
-	return wl.activeWitnessList
+	//return wl.activeWitnessList
+	return []string{
+		"IOSTjBxx7sUJvmxrMiyjEQnz9h5bfNrXwLinkoL9YvWjnrGdbKnBP",
+		"IOSTgw6cmmWyiW25TMAK44N9coLCMaygx5eTfGVwjCcriEWEEjK2H",
+		"IOSTxHn7wtQMpgvDbiypByZVNHrE6ELdXFbL1Vic8B23EgRNjQGbs",
+		"IOST2gxCPceKrWauFTqMCjMgZKRykp4Gt2Nd1H1XGRP1saYFXGqH4Y",
+		"IOST24jsSGj2WxSRtgZkCDng19LPbT48HMsv2Nz13NXEYoqR1aYyvS",
+		"IOST2v2ZumgyNXtpf1MEbkbbAK3tFfC856oMoVUYfYDvC1mpX14AvA",
+		"IOSTCJqjtLBntuWRGaZumevYgBEZsU8AaAdUpEMnpGieKV676B9St",
+	}
 }
 
 // SetPendingNum get block number of pending witness
