@@ -597,7 +597,7 @@ func (pm *PeerManager) HandleMessage(msg *p2pMessage, peerID peer.ID) {
 				select {
 				case v.(chan IncomingMessage) <- *inMsg:
 				default:
-					ilog.Errorf("sending incoming message failed. type=%s", msg.messageType())
+					ilog.Errorf("sending incoming message failed. type=%s, ID=%v", msg.messageType(), k)
 				}
 				return true
 			})
