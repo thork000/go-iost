@@ -50,6 +50,7 @@ func NewTxPoolImpl(global global.BaseVariable, blockCache blockcache.BlockCache,
 		quitGenerateMode: make(chan struct{}),
 		quitCh:           make(chan struct{}),
 	}
+	p.forkChain.NewHead = blockCache.Head()
 	p.Lease()
 	return p, nil
 }
