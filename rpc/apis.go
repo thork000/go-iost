@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -254,6 +255,7 @@ func (s *RPCServer) GetNetID(ctx context.Context, empty *empty.Empty) (*GetNetID
 
 // SendRawTx ...
 func (s *RPCServer) SendRawTx(ctx context.Context, rawTx *RawTxReq) (*SendRawTxRes, error) {
+	log.Println("SendRawTx receive tx rpc")
 	if rawTx == nil {
 		return nil, fmt.Errorf("argument cannot be nil pointer")
 	}
@@ -278,6 +280,7 @@ func (s *RPCServer) SendRawTx(ctx context.Context, rawTx *RawTxReq) (*SendRawTxR
 	}
 	res := SendRawTxRes{}
 	res.Hash = string(trx.Hash())
+	log.Println("SendRawTx send tx rpc")
 	return &res, nil
 }
 
