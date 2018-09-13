@@ -21,7 +21,7 @@ func shellRun(s string) (string, error) {
 	return out.String(), err
 }
 
-func main() {
+func mainx() {
 	args := os.Args
 
 	tps, _ := strconv.Atoi(args[1])
