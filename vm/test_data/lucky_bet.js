@@ -1,5 +1,7 @@
 const maxUserNumber = 10;
 
+const iost = 100000000;
+
 class Contract {
     init() {
         storage.put("user_number", JSON.stringify(0));
@@ -15,8 +17,8 @@ class Contract {
         }
     }
     bet(account, luckyNumber, coins, nonce) {
-        if (coins < 1 || coins > 5) {
-            return "bet coins should be >=1 and <= 5"
+        if (coins < iost || coins > 5 * iost) {
+            return "bet coins should be >=1 iost and <= 5 iost"
         }
         if (luckyNumber < 0 && luckyNumber > 9) {
             return "bet coins should be >=1 and <= 5"

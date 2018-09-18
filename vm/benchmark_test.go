@@ -25,7 +25,7 @@ func benchInit() (Engine, *database.Visitor) {
 	}
 
 	vi := database.NewVisitor(0, mvccdb)
-	vi.SetBalance(testID[0], 1000000)
+	vi.SetBalance(testID[0], 10000000000000)
 	vi.SetContract(systemContract)
 	vi.Commit()
 
@@ -59,7 +59,13 @@ func BenchmarkNative_Transfer(b *testing.B) { // 21400 ns/op
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		e.Exec(trx)
+		r, err := e.Exec(trx)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if r.Status.Code != 0 {
+			b.Fatal(err)
+		}
 	}
 	b.StopTimer()
 	cleanUp()
@@ -72,8 +78,8 @@ func BenchmarkNative_Transfer_LRU(b *testing.B) { // 15300 ns/op
 	}
 
 	vi := database.NewVisitor(100, mvccdb)
-	vi.SetBalance(testID[0], 1000000)
 	vi.SetContract(systemContract)
+	vi.SetBalance(testID[0], 10000000000000)
 	vi.Commit()
 
 	bh := &block.BlockHead{
@@ -97,7 +103,13 @@ func BenchmarkNative_Transfer_LRU(b *testing.B) { // 15300 ns/op
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		e.Exec(trx)
+		r, err := e.Exec(trx)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if r.Status.Code != 0 {
+			b.Fatal(err)
+		}
 	}
 	b.StopTimer()
 	cleanUp()
@@ -114,7 +126,13 @@ func BenchmarkNative_Receipt(b *testing.B) { // 138000 ns/op
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		e.Exec(trx)
+		r, err := e.Exec(trx)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if r.Status.Code != 0 {
+			b.Fatal(err)
+		}
 	}
 	b.StopTimer()
 	cleanUp()
@@ -133,7 +151,13 @@ func BenchmarkNative_SetCode(b *testing.B) { // 3.03 ms/op
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		e.Exec(trx)
+		r, err := e.Exec(trx)
+		if err != nil {
+			b.Fatal(err)
+		}
+		if r.Status.Code != 0 {
+			b.Fatal(err)
+		}
 	}
 	b.StopTimer()
 	cleanUp()
@@ -175,7 +199,6 @@ func BenchmarkJS_Gas_Once(b *testing.B) { // 443 us/op
 func BenchmarkJS_Gas_100(b *testing.B) { // 483 um/op
 	ilog.Stop()
 	js := NewJSTester(b)
-	js.vi.SetBalance(testID[0], 10000000000)
 	defer js.Clear()
 	f, err := ReadFile("test_data/gas.js")
 	if err != nil {
@@ -184,6 +207,8 @@ func BenchmarkJS_Gas_100(b *testing.B) { // 483 um/op
 	js.SetJS(string(f))
 	js.SetAPI("run", "number")
 	js.DoSet()
+
+	js.vi.SetBalance(testID[0], 10000000000000)
 
 	act2 := tx.NewAction(js.cname, "run", `[100]`)
 
@@ -209,7 +234,6 @@ func BenchmarkJS_Gas_100(b *testing.B) { // 483 um/op
 func BenchmarkJS_Gas_200(b *testing.B) { // 525 um/op
 	ilog.Stop()
 	js := NewJSTester(b)
-	js.vi.SetBalance(testID[0], 10000000000)
 	defer js.Clear()
 	f, err := ReadFile("test_data/gas.js")
 	if err != nil {
@@ -218,6 +242,7 @@ func BenchmarkJS_Gas_200(b *testing.B) { // 525 um/op
 	js.SetJS(string(f))
 	js.SetAPI("run", "number")
 	js.DoSet()
+	js.vi.SetBalance(testID[0], 10000000000000)
 
 	act2 := tx.NewAction(js.cname, "run", `[200]`)
 
@@ -251,8 +276,6 @@ func Benchmark_JS_Transfer(b *testing.B) {
 	js.SetJS(string(f))
 	js.SetAPI("transfer", "string", "string", "number")
 	js.DoSet()
-
-	js.vi.SetBalance(testID[0], 100000000)
 
 	act2 := tx.NewAction(js.cname, "transfer", fmt.Sprintf(`["%v","%v",%v]`, testID[0], testID[2], 100))
 

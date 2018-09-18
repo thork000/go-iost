@@ -938,16 +938,16 @@ func TestJS_LuckyBet(t *testing.T) {
 	}
 
 	// here put the first bet
-	r = js.TestJS("bet", fmt.Sprintf(`["%v",0, 2]`, testID[0]))
+	r = js.TestJS("bet", fmt.Sprintf(`["%v",0, 200000000]`, testID[0]))
 	Convey("after 1 bet", t, func() {
 		So(r.Status.Message, ShouldEqual, "")
 		So(js.ReadDB("user_number"), ShouldEqual, "1")
-		So(js.ReadDB("total_coins"), ShouldEqual, "2")
-		So(js.ReadMap("table", "0"), ShouldEqual, `[{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":2}]`)
+		So(js.ReadDB("total_coins"), ShouldEqual, "200000000")
+		So(js.ReadMap("table", "0"), ShouldEqual, `[{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":200000000}]`)
 	})
 
 	for i := 1; i < 10; i++ { // at i = 2, should get reward
-		r = js.TestJS("bet", fmt.Sprintf(`["%v",%v, %v]`, testID[0], i, i%4+1))
+		r = js.TestJS("bet", fmt.Sprintf(`["%v",%v, %v]`, testID[0], i, (i%4+1)*100000000))
 		if r.Status.Code != 0 {
 			t.Fatal(r.Status.Message)
 		}
@@ -958,6 +958,17 @@ func TestJS_LuckyBet(t *testing.T) {
 		So(js.ReadDB("user_number"), ShouldEqual, "0")
 		So(js.ReadDB("total_coins"), ShouldEqual, "0")
 		So(js.ReadDB("round"), ShouldEqual, "2")
-		So(js.ReadDB("result1"), ShouldEqual, `{"k_number":1,"total_coins":{"number":"20"},"records":[{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":2,"reward":"20"},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":2},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":3},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":4},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":1},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":2},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":3},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":4},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":1},{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":2}]}`)
+		So(js.ReadDB("result1"), ShouldEqual, `{"k_number":1,"total_coins":{"number":"2090000000"},`+
+			`"records":[{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":200000000,"reward":"2090000000"},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":200000000},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":300000000},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":400000000},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":100000000},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":200000000},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":300000000},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":400000000},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":100000000},`+
+			`{"account":"IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn","coins":200000000}]}`)
+
 	})
 }
