@@ -26,7 +26,7 @@ func benchInit() (Engine, *database.Visitor) {
 	}
 
 	vi := database.NewVisitor(0, mvccdb)
-	vi.SetBalance(testID[0], 1000000)
+	vi.SetBalance(testID[0], 1000000000000)
 	vi.SetContract(native.ABI())
 	vi.Commit()
 
@@ -58,10 +58,11 @@ func BenchmarkNative_Transfer(b *testing.B) { // 21400 ns/op
 	if err != nil {
 		b.Fatal(err)
 	}
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		e.Exec(trx)
+		if receipt, err := e.Exec(trx); err != nil {
+			ilog.Errorf("exec tx failed. err=%v, receipt=%v", err, receipt)
+		}
 	}
 	b.StopTimer()
 	cleanUp()

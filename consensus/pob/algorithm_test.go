@@ -45,7 +45,6 @@ func MakeTx(act tx.Action) (*tx.Tx, error) {
 }
 
 func BenchmarkGenerateBlock(b *testing.B) { // 296275 = 0.3ms(0tx), 466353591 = 466ms(3000tx)
-	ilog.Stop()
 	account, _ := account.NewAccount(nil, crypto.Secp256k1)
 	topBlock := &block.Block{
 		Head: &block.BlockHead{
@@ -116,13 +115,14 @@ func cleanUp() {
 func BenchmarkNative_Transfer(b *testing.B) { // 15153 ns/op
 	e, _ := benchInit()
 	pendingTx := txpool.NewSortedTxMap()
-	txList := []*tx.Tx{}
+	var txList []*tx.Tx
 	for i := 0; i < 10000; i++ {
 		act := tx.NewAction("iost.system", "Transfer", fmt.Sprintf(`["%v","%v",%v]`, testID[0], testID[2], "100"))
 		trx, _ := MakeTx(act)
 		pendingTx.Add(trx)
 		txList = append(txList, trx)
 	}
+	b.ResetTimer()
 	limitTime := time.NewTimer(time.Second)
 	acc, _ := account.NewAccount(nil, crypto.Secp256k1)
 	topBlock := &block.Block{
@@ -146,36 +146,37 @@ func BenchmarkNative_Transfer(b *testing.B) { // 15153 ns/op
 		Receipts: []*tx.TxReceipt{},
 	}
 	for i := 0; i < b.N; i++ {
-		//iter := pendingTx.Iter()
-		//trx, ok := iter.Next()
-		//L1:
-		//	for ok {
-		//		select {
-		//		case <-limitTime.C:
-		//			ilog.Info("time up")
-		//			break L1
-		//		default:
-		//			if receipt, err := e.Exec(trx); err == nil {
-		//				blk.Txs = append(blk.Txs, trx)
-		//				blk.Receipts = append(blk.Receipts, receipt)
-		//			}
-		//			trx, ok = iter.Next()
-		//		}
-		//	}
-	L2:
-		for _, trx := range txList {
+		iter := pendingTx.Iter()
+		trx, ok := iter.Next()
+	L1:
+		for ok {
 			select {
 			case <-limitTime.C:
 				ilog.Info("time up")
-				break L2
+				break L1
 			default:
 				if receipt, err := e.Exec(trx); err == nil {
 					blk.Txs = append(blk.Txs, trx)
 					blk.Receipts = append(blk.Receipts, receipt)
 				}
+				trx, ok = iter.Next()
 			}
 		}
+		//L2:
+		//	for _, trx := range txList {
+		//		select {
+		//		case <-limitTime.C:
+		//			ilog.Info("time up")
+		//			break L2
+		//		default:
+		//			if receipt, err := e.Exec(trx); err == nil {
+		//				blk.Txs = append(blk.Txs, trx)
+		//				blk.Receipts = append(blk.Receipts, receipt)
+		//			}
+		//		}
+		//	}
 	}
+	b.StopTimer()
 	cleanUp()
 }
 
