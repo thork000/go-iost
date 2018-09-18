@@ -30,8 +30,6 @@ var (
 )
 
 func generateBlock(account *account.Account, txPool txpool.TxPool, db db.MVCCDB) (*block.Block, error) {
-
-	ilog.Info("generate Block start")
 	limitTime := time.NewTimer(common.SlotLength / 3 * time.Second)
 	txIter, head := txPool.TxIterator()
 	topBlock := head.Block
@@ -49,31 +47,8 @@ func generateBlock(account *account.Account, txPool txpool.TxPool, db db.MVCCDB)
 	db.Checkout(string(topBlock.HeadHash()))
 	e := vm.NewEngine(blk.Head, db)
 	e.SetUp("js_path", "./v8vm/v8/libjs/")
-	//e.SetUp("log_level", "fatal")
-	//e.SetUp("log_enable", "")
-	// call vote
-	if blk.Head.Number%common.VoteInterval == 0 {
-		ilog.Info("vote start")
-		act := tx.NewAction("iost.vote", "Stat", fmt.Sprintf(`[]`))
-		trx := tx.NewTx([]*tx.Action{&act}, nil, 100000000, 0, 0)
-
-		trx, err := tx.SignTx(trx, staticProperty.account)
-		if err != nil {
-			ilog.Errorf("fail to signTx, err:%v", err)
-		}
-		receipt, err := e.Exec(trx)
-		if err != nil {
-			ilog.Errorf("fail to exec trx, err:%v", err)
-		}
-		if receipt.Status.Code != tx.Success {
-			ilog.Errorf("status code: %v", receipt.Status.Code)
-		}
-		blk.Txs = append(blk.Txs, trx)
-		blk.Receipts = append(blk.Receipts, receipt)
-	}
 	t, ok := txIter.Next()
 	delList := []*tx.Tx{}
-	var vmExecTime, iterTime, i, j int64
 L:
 	for ok {
 		select {
@@ -81,10 +56,7 @@ L:
 			ilog.Info("time up")
 			break L
 		default:
-			i++
-			step1 := time.Now()
 			if !txPool.TxTimeOut(t) {
-				j++
 				if receipt, err := e.Exec(t); err == nil {
 					blk.Txs = append(blk.Txs, t)
 					blk.Receipts = append(blk.Receipts, receipt)
@@ -95,34 +67,16 @@ L:
 			} else {
 				delList = append(delList, t)
 			}
-			step2 := time.Now()
 			t, ok = txIter.Next()
-			step3 := time.Now()
-			vmExecTime += step2.Sub(step1).Nanoseconds()
-			iterTime += step3.Sub(step2).Nanoseconds()
 		}
 	}
 
-	if i > 0 && j > 0 {
-		metricsVMTime.Set(float64(vmExecTime), nil)
-		metricsVMAvgTime.Set(float64(vmExecTime/j), nil)
-		metricsIterTime.Set(float64(iterTime), nil)
-		metricsIterAvgTime.Set(float64(iterTime/j), nil)
-		metricsNonTimeOutTxSize.Set(float64(j), nil)
-		metricsAllTxSize.Set(float64(i), nil)
-		ilog.Infof("tx in blk:%d, iter:%d, vmExecTime:%d, vmAvgTime:%d, iterTime:%d, iterAvgTime:%d",
-			len(blk.Txs), i, vmExecTime, vmExecTime/j, iterTime, iterTime/j)
-	}
-	ilog.Error("here")
 	blk.Head.TxsHash = blk.CalculateTxsHash()
-	ilog.Error("here")
 	blk.Head.MerkleHash = blk.CalculateMerkleHash()
-	ilog.Error("here")
 	err := blk.CalculateHeadHash()
 	if err != nil {
 		return nil, err
 	}
-	ilog.Error("here")
 	blk.Sign = account.Sign(blk.HeadHash())
 	db.Tag(string(blk.HeadHash()))
 
