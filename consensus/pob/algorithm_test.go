@@ -6,6 +6,8 @@ import (
 
 	"fmt"
 
+	"os"
+
 	"github.com/golang/mock/gomock"
 	"github.com/iost-official/Go-IOS-Protocol/account"
 	"github.com/iost-official/Go-IOS-Protocol/common"
@@ -16,6 +18,8 @@ import (
 	"github.com/iost-official/Go-IOS-Protocol/core/txpool/mock"
 	"github.com/iost-official/Go-IOS-Protocol/crypto"
 	"github.com/iost-official/Go-IOS-Protocol/db"
+	"github.com/iost-official/Go-IOS-Protocol/ilog"
+	"github.com/iost-official/Go-IOS-Protocol/vm"
 	"github.com/iost-official/Go-IOS-Protocol/vm/database"
 	"github.com/iost-official/Go-IOS-Protocol/vm/native"
 	"github.com/smartystreets/goconvey/convey"
@@ -41,6 +45,7 @@ func MakeTx(act tx.Action) (*tx.Tx, error) {
 }
 
 func BenchmarkGenerateBlock(b *testing.B) { // 296275 = 0.3ms(0tx), 466353591 = 466ms(3000tx)
+	ilog.Stop()
 	account, _ := account.NewAccount(nil, crypto.Secp256k1)
 	topBlock := &block.Block{
 		Head: &block.BlockHead{
@@ -58,14 +63,14 @@ func BenchmarkGenerateBlock(b *testing.B) { // 296275 = 0.3ms(0tx), 466353591 = 
 	}
 	defer stateDB.Close()
 	vi := database.NewVisitor(0, stateDB)
-	vi.SetBalance(testID[0], 100000000)
+	vi.SetBalance(testID[0], 1000000)
 	vi.SetContract(native.ABI())
 	vi.Commit()
 	stateDB.Tag(string(topBlock.HeadHash()))
 	mockTxPool := txpool_mock.NewMockTxPool(mockController)
 	pendingTx := txpool.NewSortedTxMap()
 	for i := 0; i < 10000; i++ {
-		act := tx.NewAction("iost.system", "Transfer", fmt.Sprintf(`["%v","%v",%v]`, testID[0], testID[2], "100"))
+		act := tx.NewAction("iost.system", "Transfer", fmt.Sprintf(`["%v","%v",%v]`, testID[0], testID[2], " 100"))
 		trx, _ := MakeTx(act)
 		pendingTx.Add(trx)
 	}
@@ -75,6 +80,55 @@ func BenchmarkGenerateBlock(b *testing.B) { // 296275 = 0.3ms(0tx), 466353591 = 
 	for j := 0; j < b.N; j++ {
 		generateBlock(account, mockTxPool, stateDB)
 	}
+}
+
+func benchInit() (vm.Engine, *database.Visitor) {
+	ilog.Stop()
+	mvccdb, err := db.NewMVCCDB("mvcc")
+	if err != nil {
+		panic(err)
+	}
+
+	vi := database.NewVisitor(0, mvccdb)
+	vi.SetBalance(testID[0], 1000000)
+	vi.SetContract(native.ABI())
+	vi.Commit()
+
+	bh := &block.BlockHead{
+		ParentHash: []byte("abc"),
+		Number:     10,
+		Witness:    "witness",
+		Time:       123456,
+	}
+
+	e := vm.NewEngine(bh, mvccdb)
+
+	e.SetUp("js_path", "./v8vm/v8/libjs/")
+	e.SetUp("log_level", "fatal")
+	e.SetUp("log_enable", "")
+	return e, vi
+}
+
+func cleanUp() {
+	os.RemoveAll("mvcc")
+}
+
+func BenchmarkNative_Transfer(b *testing.B) { // 15153 ns/op
+	e, _ := benchInit()
+	var txList []*tx.Tx
+	for i := 0; i < 7000; i++ {
+		act := tx.NewAction("iost.system", "Transfer", fmt.Sprintf(`["%v","%v",%v]`, testID[0], testID[2], "100"))
+		trx, _ := MakeTx(act)
+		txList = append(txList, trx)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, trx := range txList {
+			e.Exec(trx)
+		}
+	}
+	b.StopTimer()
+	cleanUp()
 }
 
 func TestConfirmNode(t *testing.T) {

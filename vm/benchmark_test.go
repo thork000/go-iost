@@ -15,6 +15,7 @@ import (
 	"github.com/iost-official/Go-IOS-Protocol/db"
 	"github.com/iost-official/Go-IOS-Protocol/ilog"
 	"github.com/iost-official/Go-IOS-Protocol/vm/database"
+	"github.com/iost-official/Go-IOS-Protocol/vm/native"
 )
 
 func benchInit() (Engine, *database.Visitor) {
@@ -26,7 +27,7 @@ func benchInit() (Engine, *database.Visitor) {
 
 	vi := database.NewVisitor(0, mvccdb)
 	vi.SetBalance(testID[0], 1000000)
-	vi.SetContract(systemContract)
+	vi.SetContract(native.ABI())
 	vi.Commit()
 
 	bh := &block.BlockHead{
@@ -37,6 +38,7 @@ func benchInit() (Engine, *database.Visitor) {
 	}
 
 	e := newEngine(bh, vi)
+	//e := NewEngine(bh, mvccdb)
 
 	e.SetUp("js_path", jsPath)
 	e.SetUp("log_level", "fatal")

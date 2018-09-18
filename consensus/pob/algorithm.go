@@ -47,8 +47,10 @@ func generateBlock(account *account.Account, txPool txpool.TxPool, db db.MVCCDB)
 		Receipts: []*tx.TxReceipt{},
 	}
 	db.Checkout(string(topBlock.HeadHash()))
-	engine := vm.NewEngine(blk.Head, db)
-
+	e := vm.NewEngine(blk.Head, db)
+	e.SetUp("js_path", "./v8vm/v8/libjs/")
+	//e.SetUp("log_level", "fatal")
+	//e.SetUp("log_enable", "")
 	// call vote
 	if blk.Head.Number%common.VoteInterval == 0 {
 		ilog.Info("vote start")
@@ -59,7 +61,7 @@ func generateBlock(account *account.Account, txPool txpool.TxPool, db db.MVCCDB)
 		if err != nil {
 			ilog.Errorf("fail to signTx, err:%v", err)
 		}
-		receipt, err := engine.Exec(trx)
+		receipt, err := e.Exec(trx)
 		if err != nil {
 			ilog.Errorf("fail to exec trx, err:%v", err)
 		}
@@ -83,7 +85,7 @@ L:
 			step1 := time.Now()
 			if !txPool.TxTimeOut(t) {
 				j++
-				if receipt, err := engine.Exec(t); err == nil {
+				if receipt, err := e.Exec(t); err == nil {
 					blk.Txs = append(blk.Txs, t)
 					blk.Receipts = append(blk.Receipts, receipt)
 				} else {
@@ -111,13 +113,16 @@ L:
 		ilog.Infof("tx in blk:%d, iter:%d, vmExecTime:%d, vmAvgTime:%d, iterTime:%d, iterAvgTime:%d",
 			len(blk.Txs), i, vmExecTime, vmExecTime/j, iterTime, iterTime/j)
 	}
-
+	ilog.Error("here")
 	blk.Head.TxsHash = blk.CalculateTxsHash()
+	ilog.Error("here")
 	blk.Head.MerkleHash = blk.CalculateMerkleHash()
+	ilog.Error("here")
 	err := blk.CalculateHeadHash()
 	if err != nil {
 		return nil, err
 	}
+	ilog.Error("here")
 	blk.Sign = account.Sign(blk.HeadHash())
 	db.Tag(string(blk.HeadHash()))
 
