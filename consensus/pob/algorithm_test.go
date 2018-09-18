@@ -116,16 +116,37 @@ func cleanUp() {
 func BenchmarkNative_Transfer(b *testing.B) { // 15153 ns/op
 	e, _ := benchInit()
 	var txList []*tx.Tx
-	blk := block.Block{
-		Txs:      []*tx.Tx{},
-		Receipts: []*tx.TxReceipt{},
-	}
+	//blk := block.Block{
+	//	Txs:      []*tx.Tx{},
+	//	Receipts: []*tx.TxReceipt{},
+	//}
 	for i := 0; i < 10000; i++ {
 		act := tx.NewAction("iost.system", "Transfer", fmt.Sprintf(`["%v","%v",%v]`, testID[0], testID[2], "100"))
 		trx, _ := MakeTx(act)
 		txList = append(txList, trx)
 	}
-	limitTime := time.NewTimer(common.SlotLength / 3 * time.Second)
+	limitTime := time.NewTimer(time.Second)
+	account, _ := account.NewAccount(nil, crypto.Secp256k1)
+	topBlock := &block.Block{
+		Head: &block.BlockHead{
+			ParentHash: []byte("abc"),
+			Number:     10,
+			Witness:    "witness",
+			Time:       123456,
+		},
+	}
+	topBlock.CalculateHeadHash()
+	blk := block.Block{
+		Head: &block.BlockHead{
+			Version:    0,
+			ParentHash: topBlock.HeadHash(),
+			Number:     topBlock.Head.Number + 1,
+			Witness:    account.ID,
+			Time:       time.Now().Unix() / common.SlotLength,
+		},
+		Txs:      []*tx.Tx{},
+		Receipts: []*tx.TxReceipt{},
+	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 	L:
