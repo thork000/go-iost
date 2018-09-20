@@ -25,7 +25,7 @@ func benchInit() (Engine, *database.Visitor) {
 	}
 
 	vi := database.NewVisitor(0, mvccdb)
-	vi.SetBalance(testID[0], 1000000)
+	vi.SetBalance(testID[0], 1000000000)
 	vi.SetContract(systemContract)
 	vi.Commit()
 
