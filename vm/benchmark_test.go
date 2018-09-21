@@ -7,6 +7,8 @@ import (
 
 	"fmt"
 
+	"runtime/pprof"
+
 	"github.com/iost-official/Go-IOS-Protocol/account"
 	"github.com/iost-official/Go-IOS-Protocol/common"
 	"github.com/iost-official/Go-IOS-Protocol/core/block"
@@ -52,7 +54,9 @@ func cleanUp() {
 
 func BenchmarkNative_Transfer(b *testing.B) { // 21400 ns/op
 	e, _ := benchInit()
-
+	f, _ := os.Create("cpu.prof")
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
 	act := tx.NewAction("iost.system", "Transfer", fmt.Sprintf(`["%v","%v", 100]`, testID[0], testID[2]))
 	trx, err := MakeTx(act)
 	if err != nil {
@@ -60,9 +64,7 @@ func BenchmarkNative_Transfer(b *testing.B) { // 21400 ns/op
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if receipt, err := e.Exec(trx); err != nil {
-			ilog.Errorf("exec tx failed. err=%v, receipt=%v", err, receipt)
-		}
+		e.Exec(trx)
 	}
 	b.StopTimer()
 	cleanUp()
