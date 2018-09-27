@@ -19,6 +19,13 @@ func init() {
 	register(&domainABIs, domainInit)
 }
 
+// const table names
+const (
+	DHCPTable      = "dhcp_table"
+	DHCPRTable     = "dhcp_revert_table"
+	DHCPOwnerTable = "dhcp_owner_table"
+)
+
 var (
 	link = &abi{
 		name: "Link",
@@ -37,19 +44,23 @@ var (
 
 			applicant := tij.Get("publisher").MustString()
 
-			owner := h.DHCP.URLOwner(url)
+			ownerR, c := h.MapGet(DHCPOwnerTable, url)
+			cost.AddAssign(c)
+			owner, ok := ownerR.(string)
 
-			if owner != "" && owner != applicant {
+			if ok && owner != applicant {
 				cost.AddAssign(host.CommonErrorCost(1))
 				return nil, cost, fmt.Errorf("no privilege of claimed url: %v", owner)
 			}
 
-			h.WriteLink(url, cid, applicant)
+			h.MapPut(DHCPTable, url, cid)
+			h.MapPut(DHCPRTable, cid, url)
+			h.MapPut(DHCPOwnerTable, url, owner)
 			cost.AddAssign(host.PutCost)
 			cost.AddAssign(host.PutCost)
 			cost.AddAssign(host.PutCost)
 
-			return nil, cost, nil
+			return []interface{}{}, cost, nil
 		},
 	}
 	transferURL = &abi{
@@ -69,24 +80,24 @@ var (
 
 			applicant := tij.Get("publisher").MustString()
 
-			owner := h.DHCP.URLOwner(url)
+			ownerR, c := h.MapGet(DHCPOwnerTable, url)
+			cost.AddAssign(c)
+			owner, ok := ownerR.(string)
 
-			if owner != "" && owner != applicant {
+			if !ok {
+				cost.AddAssign(host.CommonErrorCost(1))
+				return nil, cost, errors.New("transfer unclaimed url")
+			}
+
+			if owner != applicant {
 				cost.AddAssign(host.CommonErrorCost(1))
 				return nil, cost, errors.New("no privilege of claimed url")
 			}
 
-			ok, c := h.RequireAuth(applicant)
-			cost.AddAssign(c)
-
-			if !ok {
-				return nil, cost, errors.New("no privilege of claimed url")
-			}
-
-			h.URLTransfer(url, to)
+			h.MapPut(DHCPOwnerTable, url, to)
 			cost.AddAssign(host.PutCost)
 
-			return nil, cost, nil
+			return []interface{}{}, cost, nil
 
 		},
 	}

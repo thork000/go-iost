@@ -5,6 +5,8 @@ import (
 
 	"fmt"
 
+	"strings"
+
 	"github.com/iost-official/Go-IOS-Protocol/core/contract"
 	"github.com/iost-official/Go-IOS-Protocol/vm/host"
 	"github.com/iost-official/Go-IOS-Protocol/vm/native"
@@ -35,8 +37,8 @@ func NewMonitor() *Monitor {
 
 func (m *Monitor) prepareContract(h *host.Host, contractName, api, jarg string) (c *contract.Contract, abi *contract.ABI, args []interface{}, err error) {
 	var cid string
-	if h.IsDomain(contractName) {
-		cid = h.ContractID(contractName)
+	if IsDomain(contractName) {
+		cid = ContractID(h, contractName)
 	} else {
 		cid = contractName
 	}
@@ -154,4 +156,21 @@ func Factory(lang string) VM {
 		return vm
 	}
 	return nil
+}
+
+// ContractID find cid from url
+func ContractID(h *host.Host, url string) string {
+	cid, _ := h.GlobalMapGet("iost.domain", native.DHCPTable, url)
+	if s, ok := cid.(string); ok {
+		return s
+	}
+	return ""
+}
+
+// IsDomain determine if s is a domain
+func IsDomain(s string) bool {
+	if strings.HasPrefix(s, "Contract") || strings.HasPrefix(s, "iost.") {
+		return false
+	}
+	return true
 }

@@ -46,7 +46,7 @@ func TestString(t *testing.T) {
 }
 
 func TestMap(t *testing.T) {
-	t.Skip() // todo repair db put time or find out why
+	t.Skip()
 	d, err := db.NewMVCCDB("mvcc")
 	if err != nil {
 		t.Fatal(err)

@@ -25,7 +25,6 @@ type Host struct {
 	Teller
 	APIDelegate
 	EventPoster
-	DHCP
 
 	logger  *ilog.Logger
 	ctx     *Context
@@ -48,7 +47,6 @@ func NewHost(ctx *Context, db *database.Visitor, monitor Monitor, logger *ilog.L
 	h.Teller = NewTeller(h)
 	h.APIDelegate = NewAPI(h)
 	h.EventPoster = EventPoster{}
-	h.DHCP = NewDHCP(h)
 
 	return h
 

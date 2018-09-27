@@ -999,8 +999,8 @@ func TestDomain(t *testing.T) {
 		So(r.Status.Message, ShouldEqual, "")
 		So(js.e.(*engineImpl).publisherID, ShouldEqual, "IOST4wQ6HPkSrtDRYi2TGkyMJZAB3em26fx79qR3UJC7fcxpL87wTn")
 
-		So(js.vi.MGet(host.DHCPRTable, js.cname), ShouldEqual, "ahaha")
-		So(js.vi.MGet(host.DHCPTable, "ahaha"), ShouldEqual, js.cname)
+		So(js.vi.MGet("iost.domain-"+native.DHCPRTable, js.cname), ShouldEqual, "sahaha")
+		So(js.vi.MGet("iost.domain-"+native.DHCPTable, "ahaha"), ShouldEqual, "s"+js.cname)
 
 		act2 := tx.NewAction("ahaha", "transfer", fmt.Sprintf(`["%v","%v",%v]`, testID[0], testID[2], "100"))
 

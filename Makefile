@@ -65,7 +65,4 @@ debug: build
 	target/iserver -f config/iserver.yml
 
 clear_debug_file:
-	rm -rf StatePoolDB/
-	rm -rf leveldb/
-	rm priv.key
-	rm routing.table
+	rm -rf StatePoolDB/; rm priv.key; rm routing.table; rm -rf storage/
