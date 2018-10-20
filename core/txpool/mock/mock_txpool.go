@@ -37,7 +37,7 @@ func (m *MockTxPool) EXPECT() *MockTxPoolMockRecorder {
 }
 
 // AddLinkedNode mocks base method
-func (m *MockTxPool) AddLinkedNode(arg0, arg1 *blockcache.BlockCacheNode) error {
+func (m *MockTxPool) AddLinkedNode(arg0, arg1 *block.Block) error {
 	ret := m.ctrl.Call(m, "AddLinkedNode", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0

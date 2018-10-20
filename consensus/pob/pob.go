@@ -78,7 +78,8 @@ func New(account *account.Account, baseVariable global.BaseVariable, blockCache 
 		chQueryBlock:    p2pService.Register("consensus query block", p2p.NewBlockRequest),
 		chVerifyBlock:   make(chan *verifyBlockMessage, 1024),
 	}
-	staticProperty = newStaticProperty(p.account, blockCache.LinkedRoot().Active())
+	bcn, _ := blockCache.FindNode(blockCache.LinkedRoot().HeadHash())
+	staticProperty = newStaticProperty(p.account, bcn.Active())
 	return &p
 }
 
@@ -162,9 +163,9 @@ func (p *PoB) handleRecvBlockHash(blkInfo *message.BlockInfo, peerID p2p.PeerID)
 func (p *PoB) handleBlockQuery(rh *message.BlockInfo, peerID p2p.PeerID) {
 	var b []byte
 	var err error
-	node, err := p.blockCache.Find(rh.Hash)
+	blk, err := p.blockCache.Find(rh.Hash)
 	if err == nil {
-		b, err = node.Block.Encode()
+		b, err = blk.Encode()
 		if err != nil {
 			ilog.Errorf("fail to encode block: %v, err=%v", rh.Number, err)
 			return
@@ -320,46 +321,48 @@ func (p *PoB) handleRecvBlock(blk *block.Block) error {
 	if err != nil {
 		return err
 	}
-	parent, err := p.blockCache.Find(blk.Head.ParentHash)
-	p.blockCache.Add(blk)
-	if err == nil && parent.Type == blockcache.Linked {
-		return p.addExistingBlock(blk, parent.Block)
+	if p.blockCache.Add(blk) {
+		for cblk := range p.blockCache.Iterator(blk) {
+			if err := p.addExistingBlock(cblk); err != nil {
+				return err
+			}
+		}
 	}
 	return errSingle
 }
 
-func (p *PoB) addExistingBlock(blk *block.Block, parentBlock *block.Block) error {
-	node, _ := p.blockCache.Find(blk.HeadHash())
+func (p *PoB) addExistingBlock(blk *block.Block) error {
+	parentBlock, _ := p.blockCache.Find(blk.Head.ParentHash)
 	ok := p.verifyDB.Checkout(string(blk.HeadHash()))
 	if !ok {
 		p.verifyDB.Checkout(string(blk.Head.ParentHash))
-		err := verifyBlock(blk, parentBlock, p.blockCache.LinkedRoot().Block, p.txPool, p.verifyDB)
+		err := verifyBlock(blk, parentBlock, p.blockCache.LinkedRoot(), p.txPool, p.verifyDB)
 		if err != nil {
 			ilog.Errorf("verify block failed. err=%v", err)
-			p.blockCache.Del(node)
+			p.blockCache.Del(blk)
 			return err
 		}
 		p.verifyDB.Tag(string(blk.HeadHash()))
 	}
-	h := p.blockCache.Head()
-	if node.Number > h.Number {
-		p.txPool.AddLinkedNode(node, node)
+	head := p.blockCache.Head()
+	if blk.Head.Number > head.Head.Number {
+		p.txPool.AddLinkedNode(blk, blk)
 	} else {
-		p.txPool.AddLinkedNode(node, h)
+		p.txPool.AddLinkedNode(blk, head)
 	}
-	p.blockCache.Link(node)
-	p.updateInfo(node)
-	for child := range node.Children {
-		p.addExistingBlock(child.Block, node.Block)
-	}
+	p.blockCache.Link(blk)
+	p.updateInfo(blk)
 	return nil
 }
 
-func (p *PoB) updateInfo(node *blockcache.BlockCacheNode) {
+func (p *PoB) updateInfo(blk *block.Block) {
+	node, _ := p.blockCache.FindNode(blk.HeadHash())
 	updateWaterMark(node)
 	updateLib(node, p.blockCache)
-	staticProperty.updateWitness(p.blockCache.LinkedRoot().Active())
+
+	bcn, _ := p.blockCache.FindNode(p.blockCache.LinkedRoot().HeadHash())
+	staticProperty.updateWitness(bcn.Active())
 	if staticProperty.isWitness(p.account.ID) {
-		p.p2pService.ConnectBPs(p.blockCache.LinkedRoot().NetID())
+		p.p2pService.ConnectBPs(bcn.NetID())
 	}
 }

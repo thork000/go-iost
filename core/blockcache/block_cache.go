@@ -63,12 +63,10 @@ func (bcn *BlockCacheNode) setParent(parent *BlockCacheNode) {
 }
 
 func (bcn *BlockCacheNode) updateVirtualBCN(parent *BlockCacheNode, block *block.Block) {
-	if bcn.Type == Virtual && parent != nil && block != nil {
-		bcn.Block = block
-		bcn.Number = block.Head.Number
-		bcn.Witness = block.Head.Witness
-		bcn.setParent(parent)
-	}
+	bcn.Block = block
+	bcn.Number = block.Head.Number
+	bcn.Witness = block.Head.Witness
+	bcn.setParent(parent)
 }
 
 // NewBCN return a new block cache node instance
@@ -105,17 +103,21 @@ func NewVirtualBCN(parent *BlockCacheNode, block *block.Block) *BlockCacheNode {
 
 // BlockCache defines BlockCache's API
 type BlockCache interface {
-	Add(*block.Block) *BlockCacheNode
+	Add(*block.Block) bool
 	AddGenesis(*block.Block)
-	Link(*BlockCacheNode)
-	Del(*BlockCacheNode)
-	Flush(*BlockCacheNode)
-	Find([]byte) (*BlockCacheNode, error)
+	Link(*block.Block)
+	Del(*block.Block)
+	Flush(*block.Block) error
+	Find([]byte) (*block.Block, error)
 	GetBlockByNumber(int64) (*block.Block, error)
 	GetBlockByHash([]byte) (*block.Block, error)
-	LinkedRoot() *BlockCacheNode
-	Head() *BlockCacheNode
+	LinkedRoot() *block.Block
+	Head() *block.Block
 	Draw() string
+	Iterator(*block.Block) <-chan *block.Block
+	IteratorParent(*block.Block) <-chan *block.Block
+	GetType(*block.Block) BCNType
+	FindNode([]byte) (*BlockCacheNode, error)
 }
 
 // BlockCacheImpl is the implementation of BlockCache
@@ -173,7 +175,7 @@ func NewBlockCache(baseVariable global.BaseVariable) (*BlockCacheImpl, error) {
 			return nil, err
 		}
 		bc.linkedRoot.LibWitnessHandle()
-		ilog.Info("Witness Block Num:", bc.LinkedRoot().Number)
+		ilog.Info("Witness Block Num:", bc.LinkedRoot().Head.Number)
 		for _, v := range bc.linkedRoot.Active() {
 			ilog.Info("ActiveWitness:", v)
 		}
@@ -186,7 +188,11 @@ func NewBlockCache(baseVariable global.BaseVariable) (*BlockCacheImpl, error) {
 }
 
 // Link call this when you run the block verify after Add() to ensure add single bcn to linkedRoot
-func (bc *BlockCacheImpl) Link(bcn *BlockCacheNode) {
+func (bc *BlockCacheImpl) Link(blk *block.Block) {
+	bcn, err := bc.FindNode(blk.HeadHash())
+	if err != nil {
+		return
+	}
 	if bcn == nil {
 		return
 	}
@@ -246,24 +252,23 @@ func (bc *BlockCacheImpl) updateLongest() {
 }
 
 // Add is add a block
-func (bc *BlockCacheImpl) Add(blk *block.Block) *BlockCacheNode {
-	newNode, nok := bc.hmget(blk.HeadHash())
-	if nok && newNode.Type != Virtual {
-		return newNode
-	}
+func (bc *BlockCacheImpl) Add(blk *block.Block) bool {
+	// TODO blk.Head.ParentHash maybe be in blockChain
 	fa, ok := bc.hmget(blk.Head.ParentHash)
 	if !ok {
 		fa = NewVirtualBCN(bc.singleRoot, blk)
 		bc.hmset(blk.Head.ParentHash, fa)
 	}
-	if nok && newNode.Type == Virtual {
-		bc.singleRoot.delChild(newNode)
-		newNode.updateVirtualBCN(fa, blk)
-	} else {
+	newNode, ok := bc.hmget(blk.HeadHash())
+	if !ok {
 		newNode = NewBCN(fa, blk)
 		bc.hmset(blk.HeadHash(), newNode)
+	} else if newNode.Type == Virtual {
+		bc.singleRoot.delChild(newNode)
+		newNode.updateVirtualBCN(fa, blk)
 	}
-	return newNode
+
+	return fa.Type == Linked
 }
 
 // AddGenesis is add genesis block
@@ -291,7 +296,11 @@ func (bc *BlockCacheImpl) delNode(bcn *BlockCacheNode) {
 }
 
 // Del is delete a block
-func (bc *BlockCacheImpl) Del(bcn *BlockCacheNode) {
+func (bc *BlockCacheImpl) Del(blk *block.Block) {
+	bcn, err := bc.FindNode(blk.HeadHash())
+	if err != nil {
+		return
+	}
 	bc.del(bcn)
 	bc.updateLongest()
 }
@@ -357,19 +366,34 @@ func (bc *BlockCacheImpl) flush(retain *BlockCacheNode) error {
 }
 
 // Flush is save a block
-func (bc *BlockCacheImpl) Flush(bcn *BlockCacheNode) {
-	bc.flush(bcn)
+func (bc *BlockCacheImpl) Flush(blk *block.Block) error {
+	bcn, err := bc.FindNode(blk.HeadHash())
+	if err != nil {
+		return fmt.Errorf("failed to find block: %v", err)
+	}
+	if err := bc.flush(bcn); err != nil {
+		return fmt.Errorf("failed to flush block cache node: %v", err)
+	}
 	bc.delSingle()
 	bc.updateLongest()
+	return nil
 }
 
-// Find is find the block
-func (bc *BlockCacheImpl) Find(hash []byte) (*BlockCacheNode, error) {
+func (bc *BlockCacheImpl) FindNode(hash []byte) (*BlockCacheNode, error) {
 	bcn, ok := bc.hmget(hash)
 	if !ok || bcn.Type == Virtual {
 		return nil, errors.New("block not found")
 	}
 	return bcn, nil
+}
+
+// Find is find the block
+func (bc *BlockCacheImpl) Find(hash []byte) (*block.Block, error) {
+	bcn, err := bc.FindNode(hash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find block: %v", err)
+	}
+	return bcn.Block, nil
 }
 
 // GetBlockByNumber get a block by number
@@ -386,19 +410,59 @@ func (bc *BlockCacheImpl) GetBlockByNumber(num int64) (*block.Block, error) {
 
 // GetBlockByHash get a block by hash
 func (bc *BlockCacheImpl) GetBlockByHash(hash []byte) (*block.Block, error) {
-	bcn, err := bc.Find(hash)
+	blk, err := bc.Find(hash)
 	if err != nil {
 		return nil, err
 	}
-	return bcn.Block, nil
+	return blk, nil
 }
 
 // LinkedRoot return the root node
-func (bc *BlockCacheImpl) LinkedRoot() *BlockCacheNode {
-	return bc.linkedRoot
+func (bc *BlockCacheImpl) LinkedRoot() *block.Block {
+	return bc.linkedRoot.Block
 }
 
 // Head return head of block cache
-func (bc *BlockCacheImpl) Head() *BlockCacheNode {
-	return bc.head
+func (bc *BlockCacheImpl) Head() *block.Block {
+	if bc.head != nil {
+		return bc.head.Block
+	} else {
+		return nil
+	}
+}
+
+func (bc *BlockCacheImpl) iterator(bcn *BlockCacheNode, ch chan *block.Block) {
+	ch <- bcn.Block
+	for child := range bcn.Children {
+		bc.iterator(child, ch)
+	}
+}
+
+// Iterator is the iterator generator for blk's children
+func (bc *BlockCacheImpl) Iterator(blk *block.Block) <-chan *block.Block {
+	bcn, _ := bc.FindNode(blk.HeadHash())
+	ch := make(chan *block.Block)
+	go func(bcn *BlockCacheNode, ch chan *block.Block) {
+		bc.iterator(bcn, ch)
+		close(ch)
+	}(bcn, ch)
+	return ch
+}
+
+// Iterator is the iterator generator for blk's parent
+func (bc *BlockCacheImpl) IteratorParent(blk *block.Block) <-chan *block.Block {
+	bcn, _ := bc.FindNode(blk.HeadHash())
+	ch := make(chan *block.Block)
+	go func(bcn *BlockCacheNode, ch chan *block.Block) {
+		for parent := bcn; parent != nil; parent = parent.Parent {
+			ch <- parent.Block
+		}
+		close(ch)
+	}(bcn, ch)
+	return ch
+}
+
+func (bc *BlockCacheImpl) GetType(blk *block.Block) BCNType {
+	bcn, _ := bc.FindNode(blk.HeadHash())
+	return bcn.Type
 }

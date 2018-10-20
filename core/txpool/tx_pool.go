@@ -45,7 +45,7 @@ func NewTxPoolImpl(global global.BaseVariable, blockCache blockcache.BlockCache,
 		quitGenerateMode: make(chan struct{}),
 		quitCh:           make(chan struct{}),
 	}
-	p.forkChain.NewHead = blockCache.Head()
+	p.forkChain.NewHead, _ = blockCache.FindNode(blockCache.Head().HeadHash())
 	close(p.quitGenerateMode)
 	return p, nil
 }
@@ -190,8 +190,9 @@ func (pool *TxPImpl) createTxMapToBlock(tm *sync.Map, blockHash []byte) bool {
 }
 
 // AddLinkedNode add the findBlock
-func (pool *TxPImpl) AddLinkedNode(linkedNode *blockcache.BlockCacheNode, newHead *blockcache.BlockCacheNode) error {
-	err := pool.addBlock(linkedNode.Block)
+func (pool *TxPImpl) AddLinkedNode(linkedBlk *block.Block, newHeadBlk *block.Block) error {
+	newHead, _ := pool.blockCache.FindNode(newHeadBlk.HeadHash())
+	err := pool.addBlock(linkedBlk)
 	if err != nil {
 		return fmt.Errorf("failed to add findBlock: %v", err)
 	}
@@ -353,7 +354,7 @@ func (pool *TxPImpl) existTxInBlock(txHash []byte, blockHash []byte) bool {
 }
 
 func (pool *TxPImpl) clearBlock() {
-	filterLimit := slotToNSec(pool.blockCache.LinkedRoot().Block.Head.Time) - filterTime
+	filterLimit := slotToNSec(pool.blockCache.LinkedRoot().Head.Time) - filterTime
 	pool.blockList.Range(func(key, value interface{}) bool {
 		if value.(*blockTx).time < filterLimit {
 			pool.blockList.Delete(key)

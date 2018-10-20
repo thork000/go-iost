@@ -196,9 +196,10 @@ func updateWaterMark(node *blockcache.BlockCacheNode) {
 }
 
 func updateLib(node *blockcache.BlockCacheNode, bc blockcache.BlockCache) {
-	confirmedNode := calculateConfirm(node, bc.LinkedRoot())
+	bcn, _ := bc.FindNode(bc.LinkedRoot().HeadHash())
+	confirmedNode := calculateConfirm(node, bcn)
 	if confirmedNode != nil {
-		bc.Flush(confirmedNode)
+		bc.Flush(confirmedNode.Block)
 		metricsConfirmedLength.Set(float64(confirmedNode.Number+1), nil)
 	}
 }

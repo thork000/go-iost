@@ -170,10 +170,10 @@ func TestNewTxPImpl(t *testing.T) {
 			b := genBlocks(accountList, witnessList, 1, txCnt, true)
 			//ilog.Debug(("FoundChain", b[0].HeadHash())
 
-			bcn := blockcache.NewBCN(nil, b[0])
+			txPool.blockCache.Add(b[0])
 			So(txPool.testBlockListNum(), ShouldEqual, 0)
 
-			err := txPool.AddLinkedNode(bcn, bcn)
+			err := txPool.AddLinkedNode(b[0], b[0])
 			So(err, ShouldBeNil)
 
 			// need delay
@@ -187,12 +187,12 @@ func TestNewTxPImpl(t *testing.T) {
 			So(txPool.testBlockListNum(), ShouldEqual, 1)
 			So(txPool.testPendingTxsNum(), ShouldEqual, 0)
 			for i := 0; i < txCnt; i++ {
-				r1 := txPool.ExistTxs(b[0].Txs[i].Hash(), bcn.Block)
+				r1 := txPool.ExistTxs(b[0].Txs[i].Hash(), b[0])
 				So(r1, ShouldEqual, FoundChain)
 			}
 
 			t := genTx(accountList[0], Expiration)
-			r1 := txPool.ExistTxs(t.Hash(), bcn.Block)
+			r1 := txPool.ExistTxs(t.Hash(), b[0])
 			So(r1, ShouldEqual, NotFound)
 		})
 		stopTest(gbl)
@@ -294,18 +294,16 @@ func TestNewTxPImplB(t *testing.T) {
 
 			for i := 0; i < blockCnt; i++ {
 				//ilog.Debug(("hash:", blockList[i].HeadHash(), " parentHash:", blockList[i].Head.ParentHash)
-				bcn := BlockCache.Add(blockList[i])
-				So(bcn, ShouldNotBeNil)
+				BlockCache.Add(blockList[i])
 
-				err = txPool.AddLinkedNode(bcn, bcn)
+				err = txPool.AddLinkedNode(blockList[i], blockList[i])
 				So(err, ShouldBeNil)
 			}
 
 			forkBlockTxCnt := 6
 			forkBlock := genSingleBlock(accountList, witnessList, blockList[1].HeadHash(), forkBlockTxCnt)
 			//ilog.Debug(("Sing hash:", forkBlock.HeadHash(), " Sing parentHash:", forkBlock.Head.ParentHash)
-			bcn := BlockCache.Add(forkBlock)
-			So(bcn, ShouldNotBeNil)
+			BlockCache.Add(forkBlock)
 
 			for i := 0; i < forkBlockTxCnt-3; i++ {
 				r := txPool.AddTx(forkBlock.Txs[i])
@@ -315,7 +313,7 @@ func TestNewTxPImplB(t *testing.T) {
 			So(txPool.testPendingTxsNum(), ShouldEqual, 3)
 
 			// fork chain
-			err = txPool.AddLinkedNode(bcn, bcn)
+			err = txPool.AddLinkedNode(forkBlock, forkBlock)
 			So(err, ShouldBeNil)
 			// need delay
 			for i := 0; i < 20; i++ {
@@ -464,7 +462,7 @@ func BenchmarkAddTx(b *testing.B) {
 	blockList := genNodes(accountList, witnessList, blockCnt, listTxCnt, true)
 
 	for i := 0; i < blockCnt; i++ {
-		txPool.AddLinkedNode(blockList[i], blockList[i])
+		txPool.AddLinkedNode(blockList[i].Block, blockList[i].Block)
 	}
 	time.Sleep(200 * time.Millisecond)
 

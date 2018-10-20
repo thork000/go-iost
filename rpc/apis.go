@@ -117,8 +117,8 @@ func (s *GRPCServer) GetChainInfo(ctx context.Context, empty *empty.Empty) (*Cha
 		ProtocolVersion:      s.bv.Config().Version.ProtocolVersion,
 		Height:               s.bchain.Length() - 1,
 		WitnessList:          pob.GetStaticProperty().WitnessList,
-		HeadBlock:            toBlockInfo(s.bc.Head().Block, false),
-		LatestConfirmedBlock: toBlockInfo(s.bc.LinkedRoot().Block, false),
+		HeadBlock:            toBlockInfo(s.bc.Head(), false),
+		LatestConfirmedBlock: toBlockInfo(s.bc.LinkedRoot(), false),
 	}, nil
 }
 
@@ -251,7 +251,7 @@ func (s *GRPCServer) GetContractStorage(ctx context.Context, req *GetContractSto
 	if req.ContractID == "" {
 		return nil, fmt.Errorf("contract id cannot be empty")
 	}
-	s.forkDB.Checkout(string(s.bc.LinkedRoot().Block.HeadHash()))
+	s.forkDB.Checkout(string(s.bc.LinkedRoot().HeadHash()))
 	var value string
 	if req.Field == "" {
 		k := req.ContractID + database.Separator + req.Key
@@ -314,9 +314,9 @@ func (s *GRPCServer) GetBalance(ctx context.Context, key *GetBalanceReq) (*GetBa
 		return nil, fmt.Errorf("argument cannot be nil pointer")
 	}
 	if key.UseLongestChain {
-		s.forkDB.Checkout(string(s.bc.Head().Block.HeadHash())) // long
+		s.forkDB.Checkout(string(s.bc.Head().HeadHash())) // long
 	} else {
-		s.forkDB.Checkout(string(s.bc.LinkedRoot().Block.HeadHash())) // confirm
+		s.forkDB.Checkout(string(s.bc.LinkedRoot().HeadHash())) // confirm
 	}
 	return &GetBalanceRes{
 		Balance: s.visitor.Balance(key.ID),

@@ -42,7 +42,7 @@ type Synchronizer interface {
 type SyncImpl struct {
 	p2pService   p2p.Service
 	blockCache   blockcache.BlockCache
-	lastBcn      *blockcache.BlockCacheNode
+	lastBlk      *block.Block
 	basevariable global.BaseVariable
 	dc           DownloadController
 	reqMap       *sync.Map
@@ -62,7 +62,7 @@ func NewSynchronizer(basevariable global.BaseVariable, blkcache blockcache.Block
 		basevariable: basevariable,
 		reqMap:       new(sync.Map),
 		heightMap:    new(sync.Map),
-		lastBcn:      nil,
+		lastBlk:      nil,
 		syncEnd:      0,
 	}
 	var err error
@@ -126,7 +126,7 @@ func (sy *SyncImpl) syncHeightLoop() {
 	for {
 		select {
 		case <-syncHeightTicker.C:
-			num := sy.blockCache.Head().Number
+			num := sy.blockCache.Head().Head.Number
 			sh := &message.SyncHeight{Height: num, Time: time.Now().Unix()}
 			bytes, err := proto.Marshal(sh)
 			if err != nil {
@@ -169,7 +169,7 @@ func (sy *SyncImpl) checkSync() bool {
 	}
 	height := sy.basevariable.BlockChain().Length() - 1
 	heights := make([]int64, 0, 0)
-	heights = append(heights, sy.blockCache.Head().Number)
+	heights = append(heights, sy.blockCache.Head().Head.Number)
 	now := time.Now().Unix()
 	sy.heightMap.Range(func(k, v interface{}) bool {
 		sh, ok := v.(*message.SyncHeight)
@@ -203,30 +203,38 @@ func (sy *SyncImpl) checkGenBlock() bool {
 	if sy.basevariable.Mode() != global.ModeNormal {
 		return false
 	}
-	bcn := sy.blockCache.Head()
-	for bcn != nil && bcn.Block.Head.Witness == sy.basevariable.Config().ACC.ID {
-		bcn = bcn.Parent
+	blk := sy.blockCache.Head()
+
+	var parent *block.Block
+	for parent = range sy.blockCache.IteratorParent(blk) {
+		if parent.Head.Witness != sy.basevariable.Config().ACC.ID {
+			break
+		}
 	}
-	if bcn == nil {
+	if parent == nil {
 		return false
 	}
 	height := sy.basevariable.BlockChain().Length() - 1
 	num := 0
-	if bcn != sy.lastBcn {
-		sy.lastBcn = bcn
-		witness := bcn.Block.Head.Witness
-		for i := 0; i < confirmNumber; i++ {
-			bcn = bcn.Parent
-			if bcn == nil {
-				break
-			}
-			if witness == bcn.Block.Head.Witness {
+	if blk != sy.lastBlk {
+		sy.lastBlk = blk
+
+		witness := ""
+		i := 0
+		for parent := range sy.blockCache.IteratorParent(blk) {
+			if witness == "" {
+				witness = parent.Head.Witness
+			} else if witness == parent.Head.Witness {
 				num++
+			}
+			i++
+			if i > confirmNumber {
+				break
 			}
 		}
 	}
 	if num > 0 {
-		go sy.syncBlocks(height+1, sy.blockCache.Head().Number)
+		go sy.syncBlocks(height+1, sy.blockCache.Head().Head.Number)
 		return true
 	}
 	return false
@@ -245,7 +253,7 @@ func (sy *SyncImpl) queryBlockHash(hr *message.BlockHashQuery) {
 func (sy *SyncImpl) syncBlocks(startNumber int64, endNumber int64) error {
 	sy.syncEnd = endNumber
 	for endNumber > startNumber+maxBlockHashQueryNumber-1 {
-		for sy.blockCache.Head().Number+3 < startNumber {
+		for sy.blockCache.Head().Head.Number+3 < startNumber {
 			time.Sleep(500 * time.Millisecond)
 		}
 		for i := startNumber; i < startNumber+maxBlockHashQueryNumber; i++ {
@@ -265,8 +273,8 @@ func (sy *SyncImpl) syncBlocks(startNumber int64, endNumber int64) error {
 
 // CheckSyncProcess checks if the end of sync.
 func (sy *SyncImpl) CheckSyncProcess() {
-	ilog.Infof("check sync process: now %v, end %v", sy.blockCache.Head().Number, sy.syncEnd)
-	if sy.syncEnd <= sy.blockCache.Head().Number {
+	ilog.Infof("check sync process: now %v, end %v", sy.blockCache.Head().Head.Number, sy.syncEnd)
+	if sy.syncEnd <= sy.blockCache.Head().Head.Number {
 		sy.basevariable.SetMode(global.ModeNormal)
 		sy.dc.Reset()
 	}
@@ -311,21 +319,24 @@ func (sy *SyncImpl) getBlockHashes(start int64, end int64) *message.BlockHashRes
 	resp := &message.BlockHashResponse{
 		BlockInfos: make([]*message.BlockInfo, 0, end-start+1),
 	}
-	node := sy.blockCache.Head()
-	if node != nil && end > node.Number {
-		end = node.Number
+	blk := sy.blockCache.Head()
+	if blk != nil && end > blk.Head.Number {
+		end = blk.Head.Number
 	}
 
 	for i := end; i >= start; i-- {
 		var hash []byte
 		var err error
 
-		for node != nil && i < node.Number {
-			node = node.Parent
+		var parent *block.Block
+		for parent = range sy.blockCache.IteratorParent(blk) {
+			if i >= parent.Head.Number {
+				break
+			}
 		}
 
-		if node != nil {
-			hash = node.Block.HeadHash()
+		if parent != nil {
+			hash = parent.HeadHash()
 		} else {
 			hash, err = sy.basevariable.BlockChain().GetHashByNumber(i)
 			if err != nil {
@@ -399,7 +410,7 @@ func (sy *SyncImpl) handleHashQuery(rh *message.BlockHashQuery, peerID p2p.PeerI
 func (sy *SyncImpl) handleHashResp(rh *message.BlockHashResponse, peerID p2p.PeerID) {
 	ilog.Infof("receive block hashes: len=%v", len(rh.BlockInfos))
 	for _, blkInfo := range rh.BlockInfos {
-		if blkInfo.Number > sy.blockCache.LinkedRoot().Number {
+		if blkInfo.Number > sy.blockCache.LinkedRoot().Head.Number {
 			if _, err := sy.blockCache.Find(blkInfo.Hash); err != nil {
 				sy.dc.CreateMission(string(blkInfo.Hash), blkInfo.Number, peerID)
 			}
@@ -438,9 +449,9 @@ func (sy *SyncImpl) retryDownloadLoop() {
 func (sy *SyncImpl) handleBlockQuery(rh *message.BlockInfo, peerID p2p.PeerID) {
 	var b []byte
 	var err error
-	node, err := sy.blockCache.Find(rh.Hash)
+	blk, err := sy.blockCache.Find(rh.Hash)
 	if err == nil {
-		b, err = node.Block.Encode()
+		b, err = blk.Encode()
 		if err != nil {
 			ilog.Errorf("Fail to encode block: %v, err=%v", rh.Number, err)
 			return
@@ -462,7 +473,7 @@ func (sy *SyncImpl) checkHasBlock(hash string, p interface{}) bool {
 		ilog.Errorf("get p failed.")
 		return false
 	}
-	if bn <= sy.blockCache.LinkedRoot().Number {
+	if bn <= sy.blockCache.LinkedRoot().Head.Number {
 		return true
 	}
 	bHash := []byte(hash)
@@ -479,13 +490,13 @@ func (sy *SyncImpl) reqSyncBlock(hash string, p interface{}, peerID interface{})
 		return false, false
 	}
 	ilog.Infof("callback try sync block, num:%v", bn)
-	if bn <= sy.blockCache.LinkedRoot().Number {
+	if bn <= sy.blockCache.LinkedRoot().Head.Number {
 		ilog.Infof("callback block confirmed, num:%v", bn)
 		return false, true
 	}
 	bHash := []byte(hash)
-	if bcn, err := sy.blockCache.Find(bHash); err == nil {
-		if bcn.Type == blockcache.Linked {
+	if blk, err := sy.blockCache.Find(bHash); err == nil {
+		if sy.blockCache.GetType(blk) == blockcache.Linked {
 			ilog.Infof("callback block linked, num:%v", bn)
 			return false, true
 		}
