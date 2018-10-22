@@ -338,7 +338,7 @@ func (p *PoB) addExistingBlock(blk *block.Block) error {
 		p.verifyDB.Checkout(string(blk.Head.ParentHash))
 		err := verifyBlock(blk, parentBlock, p.blockCache.LinkedRoot(), p.txPool, p.verifyDB)
 		if err != nil {
-			ilog.Errorf("verify block failed. err=%v", err)
+			ilog.Errorf("Verify block failed. err=%v", err)
 			p.blockCache.Del(blk)
 			return err
 		}

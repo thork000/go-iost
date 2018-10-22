@@ -40,7 +40,6 @@ type BlockCacheNode struct { //nolint:golint
 	Witness      string
 	ConfirmUntil int64
 	WitnessList
-	Extension []byte
 }
 
 func (bcn *BlockCacheNode) addChild(child *BlockCacheNode) {
@@ -189,10 +188,7 @@ func NewBlockCache(baseVariable global.BaseVariable) (*BlockCacheImpl, error) {
 
 // Link call this when you run the block verify after Add() to ensure add single bcn to linkedRoot
 func (bc *BlockCacheImpl) Link(blk *block.Block) {
-	bcn, err := bc.FindNode(blk.HeadHash())
-	if err != nil {
-		return
-	}
+	bcn, _ := bc.FindNode(blk.HeadHash())
 	if bcn == nil {
 		return
 	}
