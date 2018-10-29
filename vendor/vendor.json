@@ -880,6 +880,12 @@
 			"revisionTime": "2018-01-03T17:44:51Z"
 		},
 		{
+			"checksumSHA1": "5fRTP+zI9WQqNzyHbi2qarMGauQ=",
+			"path": "github.com/sirupsen/logrus",
+			"revision": "ea8897e79973357ba785ac2533559a6297e83c44",
+			"revisionTime": "2018-05-23T07:42:43Z"
+		},
+		{
 			"checksumSHA1": "wVmkBavCZSwHYTDGxa1xOD3RKe0=",
 			"path": "github.com/smartystreets/assertions",
 			"revision": "7678a5452ebea5b7090a6b163f844c133f523da2",
@@ -1520,6 +1526,18 @@
 			"path": "google.golang.org/grpc/transport",
 			"revision": "d33a92319019fc969bb3e428348297ddf01257d1",
 			"revisionTime": "2018-05-22T22:31:57Z"
+		},
+		{
+			"checksumSHA1": "Yx1MU40fyGe7hhqW9+dkv8kXa60=",
+			"path": "gopkg.in/urfave/cli.v1",
+			"revision": "cfb38830724cc34fedffe9a2a29fb54fa9169cd1",
+			"revisionTime": "2017-08-11T01:42:03Z"
+		},
+		{
+			"checksumSHA1": "xC05ftJepJipUMJIb96+9elSLXQ=",
+			"path": "gopkg.in/urfave/cli.v1/altsrc",
+			"revision": "cfb38830724cc34fedffe9a2a29fb54fa9169cd1",
+			"revisionTime": "2017-08-11T01:42:03Z"
 		},
 		{
 			"checksumSHA1": "ZSWoOPUNRr5+3dhkLK3C4cZAQPk=",
