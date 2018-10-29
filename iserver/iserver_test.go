@@ -1,35 +1,43 @@
 package iserver
 
 import (
-	"os"
-	"fmt"
-	"os/exec"
-	"strconv"
-	"math/rand"
-	"time"
 	"context"
+	"fmt"
+	"math/rand"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strconv"
 	"testing"
+	"time"
 
-	"github.com/iost-official/go-iost/core/tx"
-	"github.com/iost-official/go-iost/vm"
-	"github.com/iost-official/go-iost/core/global"
-	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/account"
+	"github.com/iost-official/go-iost/common"
+	"github.com/iost-official/go-iost/core/global"
+	"github.com/iost-official/go-iost/core/tx"
+	"github.com/iost-official/go-iost/crypto"
+	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/metrics"
 	"github.com/iost-official/go-iost/rpc"
-	"github.com/iost-official/go-iost/crypto"
-	"github.com/iost-official/go-iost/common"
+	"github.com/iost-official/go-iost/vm"
 
 	"github.com/stretchr/testify/suite"
 )
 
 const (
-	DBPATH = "storage"
+	DBPATH  = "storage"
+	LOGPATH = "logs"
+	P2PPATH = "p2p"
+)
+
+var (
+	_, b, _, _ = runtime.Caller(0)
+	basepath   = filepath.Dir(b)
 )
 
 type IServerTestSuite struct {
 	suite.Suite
-	conf *common.Config
+	conf    *common.Config
 	iserver *IServer
 }
 
@@ -112,8 +120,8 @@ func getBalance(server *rpc.GRPCServer, id string) (int64, error) {
 	return value.Balance, nil
 }
 
-func (suite *IServerTestSuite) SetupTest() {
-	configfile := os.Getenv("GOPATH") + "/src/github.com/iost-official/go-iost/config/iserver.yml"
+func (suite *IServerTestSuite) SetupSuite() {
+	configfile := filepath.Join(basepath, "config", "iserver.yml")
 
 	conf := common.NewConfig(configfile)
 
@@ -134,16 +142,17 @@ func (suite *IServerTestSuite) SetupTest() {
 
 	suite.conf = conf
 	suite.iserver = iserver
+
+	time.Sleep(3 * time.Second)
 }
 
 func (suite *IServerTestSuite) TestGetNodeInfo() {
-	server := suite.iserver.grpc
-	nodeInfoRes, err := server.GetNodeInfo(context.Background(), nil)
+	nodeInfoRes, err := suite.iserver.grpc.GetNodeInfo(context.Background(), nil)
 	suite.Nil(err, "Failed to get NodeInfo from gRPC server.")
 
 	suite.Equal(global.BuildTime, nodeInfoRes.BuildTime)
 	suite.Equal(global.GitHash, global.GitHash)
-	suite.Equal(0, nodeInfoRes.Network.PeerCount)
+	suite.Equal(int32(0), nodeInfoRes.Network.PeerCount)
 }
 
 func (suite *IServerTestSuite) TestGetBalance() {
@@ -186,6 +195,8 @@ func (suite *IServerTestSuite) TestSendTx() {
 		suite.Nil(err, "Unable to send transaction.")
 	}
 
+	time.Sleep(3 * time.Second)
+
 	v := common.LoadYamlAsViper(conf.Genesis)
 	genesisConfig := &common.GenesisConfig{}
 	err = v.Unmarshal(genesisConfig)
@@ -194,7 +205,8 @@ func (suite *IServerTestSuite) TestSendTx() {
 	total, err := strconv.ParseInt(genesisConfig.WitnessInfo[1], 10, 64)
 	suite.Nil(err, "Wrong WitnessInfo")
 
-	var sum int64 = 0
+	sum, err := getBalance(server, genesisAcc.ID)
+	suite.Nil(err)
 	for _, acc := range accounts {
 		balance, err := getBalance(server, acc.ID)
 		suite.Nil(err, "Failed to get balance.")
@@ -204,11 +216,14 @@ func (suite *IServerTestSuite) TestSendTx() {
 	suite.Equal(total, sum, "Some IOST has vanished!")
 }
 
-func (suite *IServerTestSuite) TearDownTest() {
+
+func (suite *IServerTestSuite) TearDownSuite() {
 	suite.iserver.Stop()
 	ilog.Stop()
 
-	cmd := exec.Command("rm", "-r", DBPATH)
+	time.Sleep(time.Second)
+
+	cmd := exec.Command("rm", "-r", DBPATH, LOGPATH, P2PPATH)
 	err := cmd.Run()
 	suite.Nil(err, "Failed to delete storage folder.")
 }
