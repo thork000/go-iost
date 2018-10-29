@@ -7,17 +7,12 @@ import (
 	"gopkg.in/urfave/cli.v1/altsrc"
 )
 
-func New() *cli.App {
-	app := cli.NewApp()
-	app.Name = "itest"
-	app.Usage = "tool for testing the IOST test net"
-	app.Authors = []cli.Author{
-		{
-			Name:  "Wei Zhang",
-			Email: "wei@iost.io",
-		},
-	}
-	app.Flags = []cli.Flag{
+type ITest struct {
+	*cli.App
+}
+
+func flags() []cli.Flag {
+	return []cli.Flag{
 		altsrc.NewInt64Flag(cli.Int64Flag{
 			Name:  "seed, s",
 			Value: 1,
@@ -64,6 +59,19 @@ func New() *cli.App {
 			Usage: "Load configuration from this `FILE`",
 		},
 	}
+}
+
+func New() *ITest {
+	app := cli.NewApp()
+	app.Name = "itest"
+	app.Usage = "tool for testing the IOST test net"
+	app.Authors = []cli.Author{
+		{
+			Name:  "Wei Zhang",
+			Email: "wei@iost.io",
+		},
+	}
+	app.Flags = flags()
 	app.Before = func(c *cli.Context) error {
 		if _, err := os.Stat(c.String("config")); os.IsNotExist(err) {
 			return nil
@@ -91,5 +99,6 @@ func New() *cli.App {
 			Action:  run,
 		},
 	}
-	return app
+
+	return &ITest{App: app}
 }
