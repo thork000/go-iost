@@ -21,12 +21,15 @@ func validate(c *cli.Context) error {
 
 	rand.Seed(c.GlobalInt64("seed"))
 
+	log.Infof("Generating accounts...")
 	total := nodeNum * accNum
 	accounts, err := genAccounts(total)
 	if err != nil {
 		return err
 	}
+	log.Infof("Generated accounts")
 
+	log.Infof("Initializing balance of the accounts...")
 	const initBalance int64 = 1e14
 	balances := make([]int64, total)
 	for i := 0; i < total; i++ {
@@ -37,7 +40,9 @@ func validate(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	log.Infof("Initialized balance of the accounts")
 
+	log.Infof("")
 	f, err := os.Open(c.GlobalString("dump"))
 	if err != nil {
 		return err

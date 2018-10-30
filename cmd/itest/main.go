@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/iost-official/go-iost/itest"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
