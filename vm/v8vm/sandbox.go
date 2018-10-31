@@ -36,6 +36,8 @@ import (
 
 	"sync"
 
+	"time"
+
 	"github.com/iost-official/go-iost/core/contract"
 	"github.com/iost-official/go-iost/vm/host"
 )
@@ -187,8 +189,9 @@ func (sbx *Sandbox) Execute(preparedCode string) (string, int64, error) {
 	cCode := C.CString(preparedCode)
 	defer C.free(unsafe.Pointer(cCode))
 	expireTime := C.longlong(sbx.host.Deadline().UnixNano())
-
+	t1 := time.Now()
 	rs := C.Execute(sbx.context, cCode, expireTime)
+	T2 = time.Since(t1)
 
 	result := C.GoString(rs.Value)
 	defer C.free(unsafe.Pointer(rs.Value))

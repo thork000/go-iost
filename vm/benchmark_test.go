@@ -17,6 +17,7 @@ import (
 	"github.com/iost-official/go-iost/db"
 	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/vm/database"
+	"github.com/iost-official/go-iost/vm/v8vm"
 )
 
 func benchInit() (Engine, *database.Visitor) {
@@ -280,13 +281,13 @@ func Benchmark_JS_Transfer(b *testing.B) { //577385ns(local) vs 1060847ns(server
 	b.StopTimer()
 }
 
-func Benchmark_JS_Transfer_another(b *testing.B) { //629123ns(local) vs 1048236(server)
-	ilog.Stop()
-	js := NewJSTester(b)
+func Test_JS_Transfer_another(t *testing.T) { //629123ns(local) vs 1048236(server)
+	//ilog.Stop()
+	js := NewJSTester(t)
 	defer js.Clear()
 	f, err := ReadFile("../test/performance/transfer.js")
 	if err != nil {
-		b.Fatal(err)
+		t.Fatal(err)
 	}
 	js.SetJS(string(f))
 	js.SetAPI("transfer", "string", "string", "number")
@@ -303,16 +304,19 @@ func Benchmark_JS_Transfer_another(b *testing.B) { //629123ns(local) vs 1048236(
 
 	trx2, err := MakeTxWithAuth(act2, ac)
 	if err != nil {
-		b.Fatal(err)
+		t.Fatal(err)
 	}
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		js.e.Exec(trx2, time.Second)
-		//r, err := js.e.Exec(trx2, time.Second)
-		//if r.Status.Code != 0 || err != nil {
-		//	b.Fatal(r.Status.Message, err)
-		//}
+	//b.ResetTimer()
+	for i := 0; i < 400; i++ {
+		t1 := time.Now()
+		r, err := js.e.Exec(trx2, time.Second)
+		T := time.Since(t1)
+		ilog.Info(i, T, v8.T1.Nanoseconds(), v8.T2.Nanoseconds(), float64(v8.T1.Nanoseconds())/float64(T.Nanoseconds()), float64(v8.T2.Nanoseconds())/float64(T.Nanoseconds()))
+
+		if r.Status.Code != 0 || err != nil {
+			t.Fatal(r.Status.Message, err)
+		}
 	}
-	b.StopTimer()
+	//b.StopTimer()
 }

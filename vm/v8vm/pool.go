@@ -1,6 +1,8 @@
 package v8
 
 import (
+	"time"
+
 	"github.com/iost-official/go-iost/core/contract"
 	"github.com/iost-official/go-iost/vm/host"
 )
@@ -13,6 +15,9 @@ const (
 	// RunVMPool maintains a pool of run vm instance
 	RunVMPool
 )
+
+var T1 time.Duration
+var T2 time.Duration
 
 // VMPool manage all V8VM instance.
 type VMPool struct {
@@ -72,7 +77,9 @@ func (vmp *VMPool) Compile(contract *contract.Contract) (string, error) {
 
 // LoadAndCall load compiled Javascript code and run code with specified api and args
 func (vmp *VMPool) LoadAndCall(host *host.Host, contract *contract.Contract, api string, args ...interface{}) (rtn []interface{}, cost *contract.Cost, err error) {
+	t1 := time.Now()
 	vm := vmp.getRunVM()
+	T1 = time.Since(t1)
 	defer func() {
 		go vm.recycle()
 	}()

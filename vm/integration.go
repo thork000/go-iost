@@ -572,6 +572,18 @@ func NewJSTester(t fataler) *JSTester {
 	}
 }
 
+func (j *JSTester) Visitor() *database.Visitor {
+	return j.vi
+}
+
+func (j *JSTester) CName() string {
+	return j.cname
+}
+
+func (j *JSTester) Engine() Engine {
+	return j.e
+}
+
 func (j *JSTester) ReadDB(key string) (value interface{}) {
 	return database.MustUnmarshal(j.vi.Get(j.cname + "-" + key))
 }

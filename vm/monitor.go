@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/iost-official/go-iost/core/contract"
+	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/vm/host"
 	"github.com/iost-official/go-iost/vm/native"
 	"github.com/iost-official/go-iost/vm/v8vm"
@@ -120,8 +121,9 @@ func Factory(lang string) VM {
 		vm.Init()
 		return &vm
 	case "javascript":
-		vm := v8.NewVMPool(10, 200)
+		vm := v8.NewVMPool(10, 100)
 		vm.Init()
+		ilog.Info("init 100 size pool ok")
 		//vm.SetJSPath(jsPath)
 		return vm
 	}
