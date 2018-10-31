@@ -50,15 +50,14 @@ type Sandbox struct {
 }
 
 //var sbxMap = make(map[C.SandboxPtr]*Sandbox)
-var sbxMap sync.Map
+var sbxMap = make(map[C.SandboxPtr]*Sandbox)
+var sbxMapLock = new(sync.RWMutex)
 
 // GetSandbox from sandbox map by sandbox ptr
 func GetSandbox(cSbx C.SandboxPtr) (*Sandbox, bool) {
-	valInterface, ok := sbxMap.Load(cSbx)
-	if !ok {
-		return nil, ok
-	}
-	sbx, ok := valInterface.(*Sandbox)
+	sbxMapLock.RLock()
+	defer sbxMapLock.RUnlock()
+	sbx, ok := sbxMap[cSbx]
 	return sbx, ok
 }
 
@@ -74,7 +73,9 @@ func NewSandbox(e *VM) *Sandbox {
 		context: cSbx,
 	}
 	s.Init(e.vmType)
-	sbxMap.Store(cSbx, s)
+	sbxMapLock.Lock()
+	sbxMap[cSbx] = s
+	sbxMapLock.Unlock()
 
 	return s
 }
@@ -82,7 +83,9 @@ func NewSandbox(e *VM) *Sandbox {
 // Release release sandbox and delete from map
 func (sbx *Sandbox) Release() {
 	if sbx.context != nil {
-		sbxMap.Delete(sbx.context)
+		sbxMapLock.Lock()
+		delete(sbxMap, sbx.context)
+		sbxMapLock.Unlock()
 		C.releaseSandbox(sbx.context)
 	}
 	sbx.context = nil
