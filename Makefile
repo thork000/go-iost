@@ -53,6 +53,9 @@ image:
 devimage:
 	docker build -f Dockerfile.dev -t $(DOCKER_DEVIMAGE) .
 
+push:
+	docker push $(DOCKER_IMAGE)
+
 swagger:
 	./script/gen_swagger.sh
 
