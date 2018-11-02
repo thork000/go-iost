@@ -11,6 +11,7 @@
 #include "console.js.h"
 #include "esprima.js.h"
 #include "inject_gas.js.h"
+#include "environment.js.h"
 
 intptr_t externalRef[] = {
         reinterpret_cast<intptr_t>(NewConsoleLog),
@@ -31,7 +32,8 @@ static char codeFormat[] =
         "%s\n"  // load Int64
         "%s\n"  // load Float64
         "%s\n"  // load util
-        "%s\n"; // load console
+        "%s\n"  // load console
+        "%s\n"; // load environment
 
 static char compileCodeFormat[] =
     "let exports = {};\n"
@@ -77,6 +79,7 @@ CustomStartupData createStartupData() {
     char *float64js = reinterpret_cast<char *>(__libjs_float64_js);
     char *utilsjs = reinterpret_cast<char *>(__libjs_utils_js);
     char *consolejs = reinterpret_cast<char *>(__libjs_console_js);
+    char *environmentjs = reinterpret_cast<char *>(__libjs_environment_js);
 
     char *code = nullptr;
     asprintf(&code, codeFormat,
@@ -84,7 +87,8 @@ CustomStartupData createStartupData() {
         int64js,
         float64js,
         utilsjs,
-        consolejs);
+        consolejs,
+        environmentjs);
 
     StartupData blob;
     {
