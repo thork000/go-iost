@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005",
+			"revisionTime": "2018-08-15T10:47:33Z"
+		},
+		{
 			"checksumSHA1": "kto0asmOE+Nuhj7T8cvrvIwq2ak=",
 			"path": "github.com/aristanetworks/goarista/monotime",
 			"revision": "59652c8de980f3fef4d4f996665828d89574dbef",
@@ -331,18 +337,6 @@
 			"path": "github.com/inconshreveable/mousetrap",
 			"revision": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75",
 			"revisionTime": "2014-10-17T20:07:13Z"
-		},
-		{
-			"checksumSHA1": "bid1xjK/NN/lgtorI4XJ6RVueEY=",
-			"path": "github.com/iost-official/prototype/common",
-			"revision": "82e2dcd1a04e8dac4d6598f73c92d527f963bf1e",
-			"revisionTime": "2018-06-28T17:40:39Z"
-		},
-		{
-			"checksumSHA1": "1Q4lldZMntizs/Zpf6P4kkZ/r84=",
-			"path": "github.com/iost-official/prototype/log",
-			"revision": "82e2dcd1a04e8dac4d6598f73c92d527f963bf1e",
-			"revisionTime": "2018-06-28T17:40:39Z"
 		},
 		{
 			"checksumSHA1": "VVE/aQfaDZrwXwCI2bolNZrI3hA=",
