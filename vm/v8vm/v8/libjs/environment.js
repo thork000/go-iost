@@ -2,6 +2,7 @@
 
 // String
 const stringAllowedMethods = [
+    'charAt',
     'charCodeAt',
     'length',
     'constructor',
