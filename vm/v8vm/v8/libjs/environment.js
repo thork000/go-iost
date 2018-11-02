@@ -85,6 +85,34 @@ arrayMethods.forEach((method) => {
     }
 });
 
+// Math
+const mathAllowedMethods = [
+    'abs',
+    'cbrt',
+    'ceil',
+    'floor',
+    'log',
+    'log10',
+    'max',
+    'min',
+    'pow',
+    'round',
+    'sqrt',
+];
+
+const mathMethods = Object.getOwnPropertyNames(Math);
+mathMethods.forEach((method) => {
+    if (!mathAllowedMethods.includes(method)) {
+        Math[method] = null;
+        return;
+    }
+
+    const origMethod = Math[method];
+    Math[method] = function() {
+        return origMethod.call(this, ...arguments);
+    }
+});
+
 // JSON
 const JSONMethods = Object.getOwnPropertyNames(JSON);
 JSONMethods.forEach((method) => {
@@ -117,7 +145,6 @@ URIError = null;
 
 // Numbers and dates
 Number = null;
-Math = null;
 Date = null;
 
 // Text processing
