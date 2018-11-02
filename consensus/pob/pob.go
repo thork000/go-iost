@@ -93,7 +93,9 @@ func (p *PoB) Start() error {
 
 //Stop make the PoB stop
 func (p *PoB) Stop() {
+	ilog.Infof("Stopping pob...")
 	close(p.exitSignal)
+	ilog.Infof("Stopped pob")
 }
 
 func (p *PoB) messageLoop() {

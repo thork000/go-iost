@@ -96,8 +96,10 @@ func (sy *SyncImpl) Start() error {
 
 // Stop stops the synchronizer module.
 func (sy *SyncImpl) Stop() {
+	ilog.Infof("Stopping sync...")
 	sy.dc.Stop()
 	close(sy.exitSignal)
+	ilog.Infof("Stopped sync")
 }
 
 func (sy *SyncImpl) initializer() {

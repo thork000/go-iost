@@ -115,9 +115,11 @@ func (ns *NetService) Start() error {
 
 // Stop stops all the jobs.
 func (ns *NetService) Stop() {
+	ilog.Infof("Stopping p2p...")
 	ns.host.Close()
 	ns.adminServer.Stop()
 	ns.peerManager.Stop()
+	ilog.Infof("Stopped p2p")
 	return
 }
 

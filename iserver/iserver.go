@@ -116,6 +116,7 @@ func (s *IServer) Start() error {
 
 // Stop stops iserver application.
 func (s *IServer) Stop() {
+	ilog.Infof("Stoping iserver...")
 	conf := s.bv.Config()
 	if conf.Debug != nil {
 		s.debug.Stop()
@@ -133,4 +134,5 @@ func (s *IServer) Stop() {
 	}
 	s.bv.BlockChain().Close()
 	s.bv.StateDB().Close()
+	ilog.Infof("Stopped iserver")
 }

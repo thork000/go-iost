@@ -216,7 +216,6 @@ func (suite *IServerTestSuite) TestSendTx() {
 	suite.Equal(total, sum, "Some IOST has vanished!")
 }
 
-
 func (suite *IServerTestSuite) TearDownSuite() {
 	suite.iserver.Stop()
 	ilog.Stop()
