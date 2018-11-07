@@ -57,6 +57,7 @@ func genGenesisTx(gConf *common.GenesisConfig) (*tx.Tx, *account.KeyPair, error)
 	initAccountID := "inituser"
 	// new account
 	adminInfo := gConf.AdminInfo
+	// todo pay for account
 	acts = append(acts, tx.NewAction("iost.auth", "SignUp", fmt.Sprintf(`["%v", "%v", "%v"]`, adminInfo.ID, adminInfo.Owner, adminInfo.Active)))
 	// init account
 	acts = append(acts, tx.NewAction("iost.auth", "SignUp", fmt.Sprintf(`["%v", "%v", "%v"]`, initAccountID, acc.ID, acc.ID)))
@@ -70,6 +71,7 @@ func genGenesisTx(gConf *common.GenesisConfig) (*tx.Tx, *account.KeyPair, error)
 	acts = append(acts, tx.NewAction("iost.token", "create", fmt.Sprintf(`["iost", "%v", 21000000000, {}]`, initAccountID)))
 
 	// issue token
+	// todo iost issuer
 	for _, v := range witnessInfo {
 		acts = append(acts, tx.NewAction("iost.token", "issue", fmt.Sprintf(`["iost", "%v", "%v"]`, v.ID, v.Balance)))
 	}
