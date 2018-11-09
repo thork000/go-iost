@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/iost-official/go-iost/common"
 	"github.com/iost-official/go-iost/core/block"
 	"github.com/iost-official/go-iost/core/blockcache"
 	"github.com/iost-official/go-iost/core/global"
@@ -45,7 +44,7 @@ func NewTxPoolImpl(global global.BaseVariable, blockCache blockcache.BlockCache,
 		quitCh:           make(chan struct{}),
 	}
 	p.forkChain.NewHead = blockCache.Head()
-	deferServer, _ := NewDeferServer("DelayTxDB", p)
+	deferServer, _ := NewDeferServer(p)
 	/*  if err != nil { */
 	// return nil, err
 	/* } */
@@ -66,19 +65,21 @@ func (pool *TxPImpl) Stop() {
 }
 
 // AddDefertx adds defer transaction.
-func (pool *TxPImpl) AddDefertx(t *tx.Tx) error {
+func (pool *TxPImpl) AddDefertx(txHash []byte) error {
 	if pool.pendingTx.Size() > maxCacheTxs {
-		return fmt.Errorf("CacheFullError. Pending tx size is %d. Max cache is %d", pool.pendingTx.Size(), maxCacheTxs)
+		return ErrCacheFull
 	}
-	referredTx, err := pool.global.BlockChain().GetTx(t.ReferredTx)
+	referredTx, err := pool.global.BlockChain().GetTx(txHash)
 	if err != nil {
 		return err
 	}
-	t.Actions = referredTx.Actions
-	t.Expiration = referredTx.Expiration + referredTx.Delay
-	t.GasLimit = referredTx.GasLimit
-	t.GasPrice = referredTx.GasPrice
-	t.ReferredTx = nil
+	t := &tx.Tx{
+		Actions:    referredTx.Actions,
+		Time:       referredTx.Time + referredTx.Delay,
+		Expiration: referredTx.Expiration + referredTx.Delay,
+		GasLimit:   referredTx.GasLimit,
+		GasPrice:   referredTx.GasPrice,
+	}
 	return pool.addTx(t)
 }
 
@@ -181,7 +182,7 @@ func (pool *TxPImpl) createTxMapToChain(chainBlock *block.Block) (map[string]str
 	}
 	rm := make(map[string]struct{})
 	h := chainBlock.HeadHash()
-	t := slotToNSec(chainBlock.Head.Time)
+	t := chainBlock.Head.Time
 	var ok bool
 	for {
 		ret := pool.createTxMapToBlock(rm, h)
@@ -290,7 +291,7 @@ func (pool *TxPImpl) initBlockTx() {
 		if err != nil {
 			break
 		}
-		if slotToNSec(blk.Head.Time) < filterLimit {
+		if blk.Head.Time < filterLimit {
 			break
 		}
 		pool.addBlock(blk)
@@ -311,7 +312,7 @@ func (pool *TxPImpl) verifyTx(t *tx.Tx) error {
 		return fmt.Errorf("VerifyError %v", err)
 	}
 
-	if len(t.ReferredTx) > 0 {
+	if t.IsDefer() {
 		referredTx, err := pool.global.BlockChain().GetTx(t.ReferredTx)
 		if err != nil {
 			return fmt.Errorf("get referred tx error, %v", err)
@@ -333,10 +334,6 @@ func (pool *TxPImpl) verifyTx(t *tx.Tx) error {
 	}
 
 	return nil
-}
-
-func slotToNSec(t int64) int64 {
-	return common.SlotLength * t * int64(time.Second)
 }
 
 func (pool *TxPImpl) addBlock(blk *block.Block) error {
@@ -370,7 +367,7 @@ func (pool *TxPImpl) existTxInChain(txHash []byte, block *block.Block) bool {
 		return false
 	}
 	h := block.HeadHash()
-	filterLimit := slotToNSec(block.Head.Time) - filterTime
+	filterLimit := block.Head.Time - filterTime
 	var ok bool
 	for {
 		ret := pool.existTxInBlock(txHash, h)
@@ -398,7 +395,7 @@ func (pool *TxPImpl) existTxInBlock(txHash []byte, blockHash []byte) bool {
 }
 
 func (pool *TxPImpl) clearBlock() {
-	filterLimit := slotToNSec(pool.blockCache.LinkedRoot().Block.Head.Time) - filterTime
+	filterLimit := pool.blockCache.LinkedRoot().Block.Head.Time - filterTime
 	pool.blockList.Range(func(key, value interface{}) bool {
 		if value.(*blockTx).time < filterLimit {
 			pool.blockList.Delete(key)
@@ -409,10 +406,10 @@ func (pool *TxPImpl) clearBlock() {
 
 func (pool *TxPImpl) addTx(tx *tx.Tx) error {
 	if pool.existTxInPending(tx.Hash()) {
-		return errors.New("DupError. tx exists in pending")
+		return ErrDupPendingTx
 	}
 	if pool.existTxInChain(tx.Hash(), pool.forkChain.NewHead.Block) {
-		return errors.New("DupError. tx exists in chain")
+		return ErrDupChainTx
 	}
 	pool.pendingTx.Add(tx)
 	return nil
@@ -487,7 +484,7 @@ func (pool *TxPImpl) doChainChangeByForkBCN() {
 	//add txs
 	filterLimit := time.Now().UnixNano() - filterTime
 	for {
-		if oldHead == nil || oldHead == forkBCN || slotToNSec(oldHead.Block.Head.Time) < filterLimit {
+		if oldHead == nil || oldHead == forkBCN || oldHead.Block.Head.Time < filterLimit {
 			break
 		}
 		for _, t := range oldHead.Block.Txs {
@@ -498,7 +495,7 @@ func (pool *TxPImpl) doChainChangeByForkBCN() {
 
 	//del txs
 	for {
-		if newHead == nil || newHead == forkBCN || slotToNSec(newHead.Block.Head.Time) < filterLimit {
+		if newHead == nil || newHead == forkBCN || newHead.Block.Head.Time < filterLimit {
 			break
 		}
 		for _, t := range newHead.Block.Txs {

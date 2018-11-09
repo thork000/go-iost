@@ -44,7 +44,7 @@ func generateBlock(acc *account.KeyPair, txPool txpool.TxPool, db db.MVCCDB) (*b
 			ParentHash: topBlock.HeadHash(),
 			Number:     topBlock.Head.Number + 1,
 			Witness:    acc.ID,
-			Time:       time.Now().Unix() / common.SlotLength,
+			Time:       time.Now().UnixNano(),
 		},
 		Txs:      []*tx.Tx{},
 		Receipts: []*tx.TxReceipt{},
@@ -53,25 +53,6 @@ func generateBlock(acc *account.KeyPair, txPool txpool.TxPool, db db.MVCCDB) (*b
 
 	// call vote
 	v := verifier.Verifier{}
-	if blk.Head.Number%common.VoteInterval == 0 {
-		ilog.Info("vote start")
-		act := tx.NewAction("iost.vote", "Stat", fmt.Sprintf(`[]`))
-		trx := tx.NewTx([]*tx.Action{act}, nil, 100000000, 0, 0, 0)
-
-		trx, err := tx.SignTx(trx, staticProperty.account.ID, []*account.KeyPair{staticProperty.account})
-		if err != nil {
-			ilog.Errorf("fail to signTx, err:%v", err)
-		}
-		receipt, err := v.Exec(blk.Head, db, trx, time.Millisecond*100)
-		if err != nil {
-			ilog.Errorf("fail to exec trx, err:%v", err)
-		}
-		if receipt.Status.Code != tx.Success {
-			ilog.Errorf("status code: %v", receipt.Status.Code)
-		}
-		blk.Txs = append(blk.Txs, trx)
-		blk.Receipts = append(blk.Receipts, receipt)
-	}
 	dropList, _, err := v.Gen(&blk, db, txIter, &verifier.Config{
 		Mode:        0,
 		Timeout:     limitTime - st.Sub(time.Now()),
@@ -147,7 +128,7 @@ func verifyBlock(blk *block.Block, parent *block.Block, lib *block.Block, txPool
 		return err
 	}
 
-	if witnessOfSlot(blk.Head.Time) != blk.Head.Witness {
+	if witnessOfNanoSec(blk.Head.Time) != blk.Head.Witness {
 		ilog.Errorf("blk num: %v, time: %v, witness: %v, witness len: %v, witness list: %v",
 			blk.Head.Number, blk.Head.Time, blk.Head.Witness, staticProperty.NumberOfWitnesses, staticProperty.WitnessList)
 		return errWitness
@@ -176,7 +157,7 @@ func verifyBlock(blk *block.Block, parent *block.Block, lib *block.Block, txPool
 				return errTxSignature
 			}
 		}
-		if blk.Head.Time*common.SlotLength-tx.Time/1e9 > txpool.Expiration {
+		if blk.Head.Time-tx.Time > txpool.Expiration {
 			return errTxTooOld
 		}
 	}

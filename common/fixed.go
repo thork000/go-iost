@@ -28,6 +28,11 @@ func UnmarshalFixed(s string) (*Fixed, error) {
 	return &Fixed{Value: int64(binary.LittleEndian.Uint64([]byte(s[:8]))), Decimal: int(int32(binary.LittleEndian.Uint32([]byte(s[8:]))))}, nil
 }
 
+// IsZero checks whether the value is zero
+func (f *Fixed) IsZero() bool {
+	return f.Value == 0
+}
+
 // Neg get negative number
 func (f *Fixed) Neg() *Fixed {
 	return &Fixed{Value: -f.Value, Decimal: f.Decimal}
@@ -94,6 +99,11 @@ func (f *Fixed) Times(i int64) *Fixed {
 	return &Fixed{Value: f.Value * i, Decimal: f.Decimal}
 }
 
+// Div divide by a scalar
+func (f *Fixed) Div(i int64) *Fixed {
+	return &Fixed{Value: f.Value / i, Decimal: f.Decimal}
+}
+
 // LessThan ...
 func (f *Fixed) LessThan(other *Fixed) bool {
 	fpnNew, otherNew := UnifyDecimal(f, other)
@@ -145,6 +155,9 @@ func (f *Fixed) ToString() string {
 			rtn = append(rtn, '.')
 		}
 		rtn = append(rtn, str[i])
+	}
+	if f.Decimal == 0 {
+		return string(rtn)
 	}
 	for rtn[len(rtn)-1] == '0' {
 		rtn = rtn[0 : len(rtn)-1]
