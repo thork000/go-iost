@@ -4,9 +4,11 @@ import (
 	"encoding/base64"
 
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+
 	"github.com/gogo/protobuf/proto"
 	"github.com/iost-official/go-iost/common"
-	"io/ioutil"
 )
 
 //go:generate protoc --gofast_out=. contract.proto
@@ -44,8 +46,8 @@ type FixedAmount struct {
 //}
 
 // Encode contract to string using proto buf
-func (c *Contract) Encode() string {
-	buf, err := proto.Marshal(c)
+func (m *Contract) Encode() string {
+	buf, err := proto.Marshal(m)
 	if err != nil {
 		panic(err)
 	}
@@ -53,8 +55,8 @@ func (c *Contract) Encode() string {
 }
 
 // Decode contract from string using proto buf
-func (c *Contract) Decode(str string) error {
-	err := proto.Unmarshal([]byte(str), c)
+func (m *Contract) Decode(str string) error {
+	err := proto.Unmarshal([]byte(str), m)
 	if err != nil {
 		return err
 	}
@@ -62,8 +64,8 @@ func (c *Contract) Decode(str string) error {
 }
 
 // B64Encode encode contract to base64 string
-func (c *Contract) B64Encode() string {
-	buf, err := proto.Marshal(c)
+func (m *Contract) B64Encode() string {
+	buf, err := proto.Marshal(m)
 	if err != nil {
 		panic(err)
 	}
@@ -71,12 +73,12 @@ func (c *Contract) B64Encode() string {
 }
 
 // B64Decode decode contract from base64 string
-func (c *Contract) B64Decode(str string) error {
+func (m *Contract) B64Decode(str string) error {
 	buf, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
 		return err
 	}
-	return proto.Unmarshal(buf, c)
+	return proto.Unmarshal(buf, m)
 }
 
 // DecodeContract static method to decode contract from string
@@ -90,13 +92,33 @@ func DecodeContract(str string) *Contract {
 }
 
 // ABI get abi from contract with specific name
-func (c *Contract) ABI(name string) *ABI {
-	for _, a := range c.Info.Abi {
+func (m *Contract) ABI(name string) *ABI {
+	for _, a := range m.Info.Abi {
 		if a.Name == name {
 			return a
 		}
 	}
 	return nil
+}
+
+// Key get modified key from contract with specific name
+func (m *Contract) Key(name string, owner string) (string, error) {
+	for _, a := range m.Info.Keys {
+		if a.Name == name {
+			switch a.Type {
+			case Key_Basic:
+				return fmt.Sprintf("b-%v-%v", m.ID, a.Name), nil
+			case Key_OwnedBasic:
+				return fmt.Sprintf("b-%v@%v-%v", m.ID, owner, a.Name), nil
+			case Key_Map:
+				return fmt.Sprintf("m-%v-%v", m.ID, a.Name), nil
+			case Key_OwnedMap:
+				return fmt.Sprintf("m-%v@%v-%v", m.ID, owner, a.Name), nil
+			}
+
+		}
+	}
+	return "", fmt.Errorf("key not found")
 }
 
 // Compile read src and abi file, generate contract structure

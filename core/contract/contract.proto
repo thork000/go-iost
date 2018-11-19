@@ -6,8 +6,19 @@ message Info {
     string lang = 1;
     string version = 2;
     repeated ABI abi = 3;
+    repeated Key keys = 4;
 }
 
+message Key {
+    string name = 1;
+    enum Type {
+        Basic = 0;
+        Map = 1;
+        OwnedBasic = 2;
+        OwnedMap = 3;
+    }
+    Type type = 2;
+}
 
 message ABI {
     string name = 1;

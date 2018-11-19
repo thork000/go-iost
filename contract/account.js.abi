@@ -46,5 +46,11 @@
       "name": "RevokePermissionInGroup",
       "args": ["string", "string", "string"]
     }
+  ],
+  "keys": [
+    {
+      "name": "account",
+      "type": 1
+    }
   ]
 }

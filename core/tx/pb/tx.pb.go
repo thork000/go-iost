@@ -745,9 +745,6 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	return offset + 1
 }
 func (m *Action) Size() (n int) {
-	if m == nil {
-		return 0
-	}
 	var l int
 	_ = l
 	l = len(m.Contract)
@@ -769,9 +766,6 @@ func (m *Action) Size() (n int) {
 }
 
 func (m *Tx) Size() (n int) {
-	if m == nil {
-		return 0
-	}
 	var l int
 	_ = l
 	if m.Time != 0 {
@@ -834,9 +828,6 @@ func (m *Tx) Size() (n int) {
 }
 
 func (m *Receipt) Size() (n int) {
-	if m == nil {
-		return 0
-	}
 	var l int
 	_ = l
 	l = len(m.FuncName)
@@ -854,9 +845,6 @@ func (m *Receipt) Size() (n int) {
 }
 
 func (m *Status) Size() (n int) {
-	if m == nil {
-		return 0
-	}
 	var l int
 	_ = l
 	if m.Code != 0 {
@@ -873,9 +861,6 @@ func (m *Status) Size() (n int) {
 }
 
 func (m *TxReceipt) Size() (n int) {
-	if m == nil {
-		return 0
-	}
 	var l int
 	_ = l
 	l = len(m.TxHash)
