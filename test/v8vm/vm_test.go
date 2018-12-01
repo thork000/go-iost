@@ -700,12 +700,12 @@ func TestEngine_Float64(t *testing.T) {
 func TestEngine_String(t *testing.T) {
 	host, code := MyInit(t, "stringTest")
 	commandList := make([]string, 0)
-	commandList = append(commandList, "string", "valueOf", "concat", "includes", "endsWith", "indexOf", "lastIndexOf", "replace", "search", "split")
+	commandList = append(commandList, "string", "valueOf", "concat", "includes", "endsWith", "indexOf", "lastIndexOf", "replace", "search", "split", "startsWith", "slice", "toLowerCase", "toUpperCase", "trim", "trimLeft", "trimRight", "repeat")
 	outputList := make([]string, 0)
-	outputList = append(outputList, "ioststringtest", "", "ioststringtest", "", "", "", "", "", "", "io,t,tringte,t")
+	outputList = append(outputList, "ioststringtest", "ioststringtest", "ioststringtest", "true", "true", "3", "13", "iosustringtest", "4", "io,t,tringte,t", "true", "test", "ioststringtest", "IOSTSTRINGTEST", "ioststringtest", "ioststringtest   ", "   ioststringtest", "ioststringtestioststringtestioststringtest")
 	for k := range commandList {
 		rs, cost0, err := vmPool.LoadAndCall(host, code, commandList[k])
-		fmt.Println(cost0.ToGas())
+		fmt.Println(commandList[k], cost0.ToGas())
 		if err != nil {
 			t.Fatalf("LoadAndCall console error: %v", err)
 		}
