@@ -72,9 +72,15 @@ func (as *APIService) GetNodeInfo(context.Context, *rpcpb.EmptyRequest) (*rpcpb.
 func (as *APIService) GetChainInfo(context.Context, *rpcpb.EmptyRequest) (*rpcpb.ChainInfoResponse, error) {
 	headBlock := as.bc.Head().Block
 	libBlock := as.bc.LinkedRoot().Block
+	netName := "unknown"
+	version := "unknown"
+	if as.bv.Config().Version != nil {
+		netName = as.bv.Config().Version.NetName
+		version = as.bv.Config().Version.ProtocolVersion
+	}
 	return &rpcpb.ChainInfoResponse{
-		NetName:         as.bv.Config().Version.NetName,
-		ProtocolVersion: as.bv.Config().Version.ProtocolVersion,
+		NetName:         netName,
+		ProtocolVersion: version,
 		WitnessList:     pob.GetStaticProperty().WitnessList,
 		HeadBlock:       headBlock.Head.Number,
 		HeadBlockHash:   common.Base58Encode(headBlock.HeadHash()),
@@ -189,11 +195,10 @@ func (as *APIService) GetAccount(ctx context.Context, req *rpcpb.GetAccountReque
 	} else {
 		blkTime = as.bc.LinkedRoot().Head.Time
 	}
-	gasManager := host.NewGasManager(host.NewHost(host.NewContext(nil), dbVisitor, nil, nil))
-	totalGas, _ := gasManager.CurrentTotalGas(req.GetName(), blkTime)
-	gasLimit, _ := gasManager.GasLimit(req.GetName())
-	gasRate, _ := gasManager.GasRate(req.GetName())
-	pledgedInfo, _ := gasManager.PledgerInfo(req.GetName())
+	totalGas := dbVisitor.CurrentTotalGas(req.GetName(), blkTime)
+	gasLimit := dbVisitor.GasLimit(req.GetName())
+	gasRate := dbVisitor.GasRate(req.GetName())
+	pledgedInfo := dbVisitor.PledgerInfo(req.GetName())
 	ret.GasInfo = &rpcpb.Account_GasInfo{
 		CurrentTotal:  totalGas.ToFloat(),
 		Limit:         gasLimit.ToFloat(),
@@ -209,13 +214,37 @@ func (as *APIService) GetAccount(ctx context.Context, req *rpcpb.GetAccountReque
 	// pack frozen balance information
 	frozen := dbVisitor.AllFreezedTokenBalanceFixed("iost", req.GetName())
 	for _, f := range frozen {
-		ret.FrozenBalances = append(ret.FrozenBalances, &rpcpb.Account_FrozenBalance{
+		ret.FrozenBalances = append(ret.FrozenBalances, &rpcpb.FrozenBalance{
 			Amount: f.Amount.ToFloat(),
 			Time:   f.Ftime,
 		})
 	}
 
 	return ret, nil
+}
+
+// GetTokenBalance returns contract information corresponding to the given contract ID.
+func (as *APIService) GetTokenBalance(ctx context.Context, req *rpcpb.GetTokenBalanceRequest) (*rpcpb.GetTokenBalanceResponse, error) {
+	dbVisitor := as.getStateDBVisitor(req.ByLongestChain)
+	// pack basic account information
+	acc, _ := host.ReadAuth(dbVisitor, req.GetAccount())
+	if acc == nil {
+		return nil, errors.New("account not found")
+	}
+	balance := dbVisitor.TokenBalanceFixed(req.GetToken(), req.GetAccount()).ToFloat()
+	// pack frozen balance information
+	frozen := dbVisitor.AllFreezedTokenBalanceFixed(req.GetToken(), req.GetAccount())
+	frozenBalances := make([]*rpcpb.FrozenBalance, 0)
+	for _, f := range frozen {
+		frozenBalances = append(frozenBalances, &rpcpb.FrozenBalance{
+			Amount: f.Amount.ToFloat(),
+			Time:   f.Ftime,
+		})
+	}
+	return &rpcpb.GetTokenBalanceResponse{
+		Balance:        balance,
+		FrozenBalances: frozenBalances,
+	}, nil
 }
 
 // GetContract returns contract information corresponding to the given contract ID.
@@ -253,9 +282,29 @@ func (as *APIService) GetContractStorage(ctx context.Context, req *rpcpb.GetCont
 	}, nil
 }
 
+func (as *APIService) tryTransaction(t *tx.Tx) (*tx.TxReceipt, error) {
+	topBlock := as.bc.Head()
+	blkHead := &block.BlockHead{
+		Version:    0,
+		ParentHash: topBlock.HeadHash(),
+		Number:     topBlock.Head.Number + 1,
+		Time:       time.Now().UnixNano(),
+	}
+	v := verifier.Verifier{}
+	stateDB := as.bv.StateDB().Fork()
+	stateDB.Checkout(string(topBlock.HeadHash()))
+	return v.Try(blkHead, stateDB, t, cverifier.TxExecTimeLimit)
+}
+
 // SendTransaction sends a transaction to iserver.
 func (as *APIService) SendTransaction(ctx context.Context, req *rpcpb.TransactionRequest) (*rpcpb.SendTransactionResponse, error) {
 	t := toCoreTx(req)
+	if as.bv.Config().RPC.TryTx {
+		_, err := as.tryTransaction(t)
+		if err != nil {
+			return nil, fmt.Errorf("try transaction failed: %v", err)
+		}
+	}
 	err := as.txpool.AddTx(t)
 	if err != nil {
 		return nil, err
@@ -268,17 +317,7 @@ func (as *APIService) SendTransaction(ctx context.Context, req *rpcpb.Transactio
 // ExecTransaction executes a transaction by the node and returns the receipt.
 func (as *APIService) ExecTransaction(ctx context.Context, req *rpcpb.TransactionRequest) (*rpcpb.TxReceipt, error) {
 	t := toCoreTx(req)
-	topBlock := as.bc.Head()
-	blkHead := &block.BlockHead{
-		Version:    0,
-		ParentHash: topBlock.HeadHash(),
-		Number:     topBlock.Head.Number + 1,
-		Time:       time.Now().UnixNano(),
-	}
-	v := verifier.Verifier{}
-	stateDB := as.bv.StateDB().Fork()
-	stateDB.Checkout(string(topBlock.HeadHash()))
-	receipt, err := v.Try(blkHead, stateDB, t, cverifier.TxExecTimeLimit)
+	receipt, err := as.tryTransaction(t)
 	if err != nil {
 		return nil, err
 	}

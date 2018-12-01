@@ -1,8 +1,29 @@
+const producerPermission = "active";
+const voteStatInterval = 200;
+
 class Base {
     constructor() {
     }
     init() {
         this._put("execBlockNumber", 0);
+    }
+
+    InitAdmin(adminID) {
+        const bn = this._getBlockNumber();
+        if(bn !== 0) {
+            throw new Error("init out of genesis block")
+        }
+        this._put("adminID", adminID);
+    }
+
+    can_update(data) {
+        const admin = this._get("adminID");
+        this._requireAuth(admin, producerPermission);
+        return true;
+    }
+
+    _requireAuth(account, permission) {
+        BlockChain.requireAuth(account, permission);
     }
 
     _getBlockNumber() {
@@ -34,7 +55,7 @@ class Base {
 
     _saveBlockInfo() {
         let json = storage.get("current_block_info");
-        storage.mapPut("chain_info", block.parentHash, JSON.stringify(json));
+        storage.put("chain_info_" + block.parentHash, JSON.stringify(json));
         storage.put("current_block_info", JSON.stringify(block))
     }
 
@@ -48,7 +69,9 @@ class Base {
         }
         this._put("execBlockNumber", bn);
 
-        this._vote();
+        if (bn%voteStatInterval === 0){
+            this._vote();
+        }
         this._bonus(data);
     }
 
