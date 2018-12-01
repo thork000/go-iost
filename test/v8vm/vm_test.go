@@ -696,3 +696,11 @@ func TestEngine_Float64(t *testing.T) {
 		t.Fatalf("LoadAndCall getPow except: 1881676371789.154860897069, got: %v", rs[0])
 	}
 }
+
+func TestFor(t *testing.T) {
+	host, code := MyInit(t, "for")
+	_, _, err := vmPool.LoadAndCall(host, code, "doIn", 100000)
+	if err != nil {
+		t.Fatalf("LoadAndCall console error: %v", err)
+	}
+}
