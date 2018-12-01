@@ -1,6 +1,7 @@
 package v8vm
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -487,7 +488,7 @@ func TestEngine_DataType(t *testing.T) {
 
 // nolint
 func TestEngine_Loop(t *testing.T) {
-	t.Skip()
+	t.SkipNow()
 	host, code := MyInit(t, "loop")
 
 	_, _, err := vmPool.LoadAndCall(host, code, "for")
@@ -549,7 +550,6 @@ func TestEngine_Func(t *testing.T) {
 	if err == nil || err.Error() != "out of gas" {
 		t.Fatalf("LoadAndCall for should return error: out of gas, but got %v\n", err)
 	}
-
 	//host, code = MyInit(t, "func", int64(100000000000))
 	//_, _, err = vmPool.LoadAndCall(host, code, "func1")
 	//if err == nil || !strings.Contains(err.Error(), "Uncaught exception: RangeError: Maximum call stack size exceeded") {
@@ -695,4 +695,51 @@ func TestEngine_Float64(t *testing.T) {
 	if len(rs) > 0 && rs[0] != "1881676371789.154860897069" {
 		t.Fatalf("LoadAndCall getPow except: 1881676371789.154860897069, got: %v", rs[0])
 	}
+}
+
+func TestEngine_String(t *testing.T) {
+	host, code := MyInit(t, "stringTest")
+	commandList := make([]string, 0)
+	commandList = append(commandList, "string", "valueOf", "concat", "includes", "endsWith", "indexOf", "lastIndexOf", "replace", "search", "split")
+	outputList := make([]string, 0)
+	outputList = append(outputList, "ioststringtest", "", "ioststringtest", "", "", "", "", "", "", "io,t,tringte,t")
+	for k := range commandList {
+		rs, cost0, err := vmPool.LoadAndCall(host, code, commandList[k])
+		fmt.Println(cost0.ToGas())
+		if err != nil {
+			t.Fatalf("LoadAndCall console error: %v", err)
+		}
+		if len(rs) > 0 && rs[0] != outputList[k] {
+			t.Fatalf("LoadAndCall "+commandList[k]+" except: "+outputList[k]+" , got: %v", rs[0])
+		}
+	}
+
+	/*
+		rs, cost0, err := vmPool.LoadAndCall(host, code, "string")
+		fmt.Println(cost0.ToGas())
+		if err != nil {
+			t.Fatalf("LoadAndCall console error: %v", err)
+		}
+		if len(rs) > 0 && rs[0] != "ioststringtest" {
+			t.Fatalf("LoadAndCall string except: ioststringtest, got: %v", rs[0])
+		}
+
+		rs, cost0, err = vmPool.LoadAndCall(host, code, "split")
+		fmt.Println(cost0.ToGas())
+		if err != nil {
+			t.Fatalf("LoadAndCall console error: %v", err)
+		}
+		if len(rs) > 0 && rs[0] != "io,t,tringte,t" {
+			t.Fatalf("LoadAndCall split except: io,t,tringte,t , got: %v", rs[0])
+		}
+
+		rs, cost0, err = vmPool.LoadAndCall(host, code, "concat")
+		if err != nil {
+			t.Fatalf("LoadAndCall concat error: %v", err)
+		}
+		if len(rs) > 0 && rs[0] != "ioststringtest" {
+			t.Fatalf("LoadAndCall split except: io,t,tringte,t , got: %v", rs[0])
+		}
+
+	*/
 }
