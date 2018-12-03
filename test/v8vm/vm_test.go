@@ -713,33 +713,42 @@ func TestEngine_String(t *testing.T) {
 			t.Fatalf("LoadAndCall "+commandList[k]+" except: "+outputList[k]+" , got: %v", rs[0])
 		}
 	}
-
-	/*
-		rs, cost0, err := vmPool.LoadAndCall(host, code, "string")
-		fmt.Println(cost0.ToGas())
-		if err != nil {
-			t.Fatalf("LoadAndCall console error: %v", err)
-		}
-		if len(rs) > 0 && rs[0] != "ioststringtest" {
-			t.Fatalf("LoadAndCall string except: ioststringtest, got: %v", rs[0])
-		}
-
-		rs, cost0, err = vmPool.LoadAndCall(host, code, "split")
-		fmt.Println(cost0.ToGas())
-		if err != nil {
-			t.Fatalf("LoadAndCall console error: %v", err)
-		}
-		if len(rs) > 0 && rs[0] != "io,t,tringte,t" {
-			t.Fatalf("LoadAndCall split except: io,t,tringte,t , got: %v", rs[0])
-		}
-
-		rs, cost0, err = vmPool.LoadAndCall(host, code, "concat")
-		if err != nil {
-			t.Fatalf("LoadAndCall concat error: %v", err)
-		}
-		if len(rs) > 0 && rs[0] != "ioststringtest" {
-			t.Fatalf("LoadAndCall split except: io,t,tringte,t , got: %v", rs[0])
-		}
-
-	*/
 }
+
+func TestEngine_Array(t *testing.T) {
+	host, code := MyInit(t, "arrayTest")
+	commandList := make([]string, 0)
+	commandList = append(commandList, "concat", "every", "filter", "find", "findIndex", "forEach", "includes", "indexOf", "join", "keys", "lastIndexOf", "map", "pop", "push", "reverse", "shift", "slice", "sort", "splice", "toString", "unshift")
+	outputList := make([]string, 0)
+	outputList = append(outputList, "[1,2,3,4,5,6]", "true", "[\"exuberant\", \"destruction\", \"present\"]")
+	for k := range outputList {
+		rs, cost0, err := vmPool.LoadAndCall(host, code, commandList[k])
+		fmt.Println(commandList[k], cost0.ToGas())
+		if err != nil {
+			t.Fatalf("LoadAndCall console error: %v", err)
+		}
+		if len(rs) > 0 && rs[0] != outputList[k] {
+			t.Fatalf("LoadAndCall "+commandList[k]+" except: "+outputList[k]+" , got: %v", rs[0])
+		}
+	}
+}
+
+/*
+func TestEngine_Json(t *testing.T) {
+	host, code := MyInit(t, "arrayTest")
+	commandList := make([]string, 0)
+	commandList = append(commandList, "")
+	outputList := make([]string, 0)
+	outputList = append(outputList, "")
+	for k := range commandList {
+		rs, cost0, err := vmPool.LoadAndCall(host, code, commandList[k])
+		fmt.Println(commandList[k], cost0.ToGas())
+		if err != nil {
+			t.Fatalf("LoadAndCall console error: %v", err)
+		}
+		if len(rs) > 0 && rs[0] != outputList[k] {
+			t.Fatalf("LoadAndCall "+commandList[k]+" except: "+outputList[k]+" , got: %v", rs[0])
+		}
+	}
+}
+*/
