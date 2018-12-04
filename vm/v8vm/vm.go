@@ -14,7 +14,7 @@ import (
 	"github.com/iost-official/go-iost/vm/host"
 )
 
-const vmRefLimit = 30
+const vmRefLimit = 100
 
 // CVMInitOnce vm init once
 var CVMInitOnce = sync.Once{}
