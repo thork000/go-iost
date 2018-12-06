@@ -24,7 +24,7 @@ var sdk = iwallet.SDK{}
 
 func initConn(num int) {
 	conns = make([]*grpc.ClientConn, num)
-	allServers := []string{"localhost:30002"}
+	allServers := []string{"3.0.81.219:30002", "3.0.192.236:30002"}
 	for i := 0; i < num; i++ {
 		conn, err := grpc.Dial(allServers[i%len(allServers)], grpc.WithInsecure())
 		if err != nil {
@@ -108,7 +108,7 @@ func loadBytes(s string) []byte {
 }
 
 func transfer(i int) {
-	action := tx.NewAction(contractID, "storagetest", `[]`)
+	action := tx.NewAction(contractID, "storageTest", `[]`)
 	acc, _ := account.NewKeyPair(loadBytes(rootKey), crypto.Ed25519)
 	trx := tx.NewTx([]*tx.Action{action}, []string{}, 5000000, 100, time.Now().Add(time.Second*time.Duration(10000)).UnixNano(), 0)
 	stx, err := tx.SignTx(trx, "admin", []*account.KeyPair{acc})
@@ -130,7 +130,7 @@ func publish() string {
 	codePath := "normal_test.js"
 	abiPath := codePath + ".abi"
 	sdk.SetAccount("admin", acc)
-	sdk.SetServer("localhost:30002")
+	sdk.SetServer("3.0.11.139:30002")
 	sdk.SetTxInfo(5000000, 100, 90, 0)
 	sdk.SetCheckResult(true, 3, 10)
 	testKp, err := account.NewKeyPair(nil, crypto.Ed25519)
@@ -166,7 +166,7 @@ func publish() string {
 
 func main() {
 	var iterNum = 8000
-	var parallelNum = 100
+	var parallelNum = 200
 	initConn(parallelNum)
 
 	contractID = publish()
