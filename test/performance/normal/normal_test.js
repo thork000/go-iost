@@ -57,8 +57,8 @@ class NormalTest {
 
     transfer(from, to, amount) {
         BlockChain.transfer(from, to, amount, "")
-        BlockChain.deposit(from, amount)
-        BlockChain.withdraw(to, amount)
+        BlockChain.deposit(from, amount, "")
+        BlockChain.withdraw(to, amount, "")
     }
 
     test() {
