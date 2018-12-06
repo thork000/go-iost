@@ -11,6 +11,50 @@
                     "val": "0"
                 }
             ]
+        },
+        {
+            "name": "blockchainTest",
+            "args": [],
+            "amountLimit": [
+                {
+                    "token": "iost",
+                    "val": "0"
+                }
+            ]
+        },
+        {
+            "name": "varTest",
+            "args": [],
+            "amountLimit": [
+                {
+                    "token": "iost",
+                    "val": "0"
+                }
+            ]
+        },
+        {
+            "name": "transfer",
+            "args": [
+                "string",
+                "string",
+                "number "
+            ],
+            "amountLimit": [
+                {
+                    "token": "iost",
+                    "val": "0"
+                }
+            ]
+        },
+        {
+            "name": "test",
+            "args": [],
+            "amountLimit": [
+                {
+                    "token": "iost",
+                    "val": "0"
+                }
+            ]
         }
     ]
 }
