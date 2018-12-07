@@ -20,14 +20,11 @@ import (
 var conns []*grpc.ClientConn
 var rootKey = "2yquS3ySrGWPEKywCPzX4RTJugqRh7kJSo5aehsLYPEWkUxBWA39oMrZ7ZxuM4fgyXYs2cPwh5n8aNNpH5x2VyK1"
 var contractID string
-
-var testID string
-var testKp *account.KeyPair
+var sdk = iwallet.SDK{}
 
 func initConn(num int) {
 	conns = make([]*grpc.ClientConn, num)
 	allServers := []string{"localhost:30002"}
-
 	for i := 0; i < num; i++ {
 		conn, err := grpc.Dial(allServers[i%len(allServers)], grpc.WithInsecure())
 		if err != nil {
@@ -35,7 +32,6 @@ func initConn(num int) {
 		}
 		conns[i] = conn
 	}
-
 }
 
 func transParallel(num int) {
@@ -94,13 +90,13 @@ func toTxRequest(t *tx.Tx) *rpcpb.TransactionRequest {
 	return ret
 }
 
-func sendTx(stx *tx.Tx, i int) (string, error) {
+func sendTx(stx *tx.Tx, i int) ([]byte, error) {
 	client := rpcpb.NewApiServiceClient(conns[i])
 	resp, err := client.SendTransaction(context.Background(), toTxRequest(stx))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return resp.Hash, nil
+	return []byte(resp.Hash), nil
 }
 
 func loadBytes(s string) []byte {
@@ -112,14 +108,16 @@ func loadBytes(s string) []byte {
 }
 
 func transfer(i int) {
-	action := tx.NewAction(contractID, "bet", fmt.Sprintf("[\"%s\",%d,%d,%d]", testID, i%10, 1, 1))
-	trx := tx.NewTx([]*tx.Action{action}, []string{}, 10000+int64(i), 100, time.Now().Add(time.Second*time.Duration(10000)).UnixNano(), 0)
-	stx, err := tx.SignTx(trx, testID, []*account.KeyPair{testKp})
+	action := tx.NewAction(contractID, "bet", fmt.Sprintf("[\"%s\",%d,%d,%d]", "admin", i%10, 1, 1))
+	acc, _ := account.NewKeyPair(loadBytes(rootKey), crypto.Ed25519)
+	trx := tx.NewTx([]*tx.Action{action}, []string{}, 5000000, 100, time.Now().Add(time.Second*time.Duration(10000)).UnixNano(), 0)
+	stx, err := tx.SignTx(trx, "admin", []*account.KeyPair{acc})
+
 	if err != nil {
 		fmt.Println("signtx", stx, err)
 		return
 	}
-	var txHash string
+	var txHash []byte
 	txHash, err = sendTx(stx, i)
 	if err != nil {
 		fmt.Println("sendtx", txHash, err)
@@ -130,14 +128,20 @@ func transfer(i int) {
 func publish() string {
 	codePath := "vm/test_data/lucky_bet.js"
 	abiPath := codePath + ".abi"
-	sdk := iwallet.SDK{}
-	sdk.SetAccount(testID, testKp)
-	sdk.SetTxInfo(10000, 100, 5, 0)
+	acc, _ := account.NewKeyPair(loadBytes(rootKey), crypto.Ed25519)
+	sdk.SetAccount("admin", acc)
+	sdk.SetServer("localhost:30002")
+	sdk.SetTxInfo(5000000, 100, 90, 0)
+	sdk.SetCheckResult(true, 3, 10)
+	err := sdk.PledgeForGas(1500000)
+	if err != nil {
+		panic(err)
+	}
 	_, txHash, err := sdk.PublishContract(codePath, abiPath, "", false, "")
 	if err != nil {
 		panic(err)
 	}
-	time.Sleep(time.Duration(5) * time.Second)
+	time.Sleep(time.Duration(30) * time.Second)
 	client := rpcpb.NewApiServiceClient(conns[0])
 	resp, err := client.GetTxReceiptByTxHash(context.Background(), &rpcpb.TxHashRequest{Hash: txHash})
 	if err != nil {
@@ -146,40 +150,19 @@ func publish() string {
 	if tx.StatusCode(resp.StatusCode) != tx.Success {
 		panic("publish contract fail " + (resp.String()))
 	}
+
 	return "Contract" + txHash
 }
 
-func initAcc() {
-	adminKp, err := account.NewKeyPair(loadBytes(rootKey), crypto.Ed25519)
-	if err != nil {
-		panic(err)
-	}
-	testKp, err = account.NewKeyPair(nil, crypto.Ed25519)
-	if err != nil {
-		panic(err)
-	}
-	testID = "testID"
-	sdk := iwallet.SDK{}
-	sdk.SetAccount("admin", adminKp)
-	sdk.CreateNewAccount(testID, testKp, 100000, 10000, 100000)
-}
-
 func main() {
-
 	var iterNum = 800
 	var parallelNum = 30
 	initConn(parallelNum)
-	initAcc()
-
 	contractID = publish()
-
 	start := time.Now()
-
 	for i := 0; i < iterNum; i++ {
 		fmt.Println(i)
 		transParallel(parallelNum)
 	}
-
 	fmt.Println("done. timecost=", time.Since(start))
-
 }
