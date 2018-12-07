@@ -8,7 +8,7 @@
             "amountLimit": [
                 {
                     "token": "iost",
-                    "val": "0"
+                    "val": "10000"
                 }
             ]
         },
@@ -18,7 +18,7 @@
             "amountLimit": [
                 {
                     "token": "iost",
-                    "val": "0"
+                    "val": "10000"
                 }
             ]
         },
@@ -28,7 +28,7 @@
             "amountLimit": [
                 {
                     "token": "iost",
-                    "val": "0"
+                    "val": "10000"
                 }
             ]
         },
@@ -42,7 +42,7 @@
             "amountLimit": [
                 {
                     "token": "iost",
-                    "val": "0"
+                    "val": "10000"
                 }
             ]
         },
@@ -52,7 +52,7 @@
             "amountLimit": [
                 {
                     "token": "iost",
-                    "val": "0"
+                    "val": "10000"
                 }
             ]
         }
