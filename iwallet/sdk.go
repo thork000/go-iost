@@ -341,9 +341,10 @@ func (s *SDK) saveAccount(name string, kp *account.KeyPair) error {
 }
 
 // PledgeForGas ...
-func (s *SDK) PledgeForGas(gasPledged int64) error {
+func (s *SDK) PledgeForGasAndRam(gasPledged int64, ram int64) error {
 	var acts []*tx.Action
 	acts = append(acts, tx.NewAction("gas.iost", "pledge", fmt.Sprintf(`["%v", "%v", "%v"]`, s.accountName, s.accountName, gasPledged)))
+	acts = append(acts, tx.NewAction("ram.iost", "buy", fmt.Sprintf(`["%v", "%v", %v]`, s.accountName, s.accountName, ram)))
 	trx, err := s.createTx(acts)
 	if err != nil {
 		return err

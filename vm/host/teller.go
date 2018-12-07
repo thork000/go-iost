@@ -6,6 +6,7 @@ import (
 
 	"github.com/iost-official/go-iost/common"
 	"github.com/iost-official/go-iost/core/contract"
+	"github.com/iost-official/go-iost/ilog"
 )
 
 // Teller handler of iost
@@ -119,6 +120,7 @@ func (h *Teller) DoPay(witness string, gasRatio int64) error {
 
 			ram := c.Data
 			currentRAM := h.h.db.TokenBalance("ram", payer)
+			ilog.Infof("id: %v, actual %v", payer, currentRAM)
 			if currentRAM-ram < 0 {
 				return fmt.Errorf("pay ram failed. id: %v need %v, actual %v", payer, ram, currentRAM)
 			}

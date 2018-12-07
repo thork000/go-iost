@@ -110,7 +110,7 @@ func loadBytes(s string) []byte {
 func transfer(i int) {
 	action := tx.NewAction(contractID, "bet", fmt.Sprintf("[\"%s\",%d,%d,%d]", "admin", i%10, 1, 1))
 	acc, _ := account.NewKeyPair(loadBytes(rootKey), crypto.Ed25519)
-	trx := tx.NewTx([]*tx.Action{action}, []string{}, 5000000, 100, time.Now().Add(time.Second*time.Duration(10000)).UnixNano(), 0)
+	trx := tx.NewTx([]*tx.Action{action}, []string{}, 100000000, 100, time.Now().Add(time.Second*time.Duration(10000)).UnixNano(), 0)
 	stx, err := tx.SignTx(trx, "admin", []*account.KeyPair{acc})
 
 	if err != nil {
@@ -133,7 +133,7 @@ func publish() string {
 	sdk.SetServer("localhost:30002")
 	sdk.SetTxInfo(5000000, 100, 90, 0)
 	sdk.SetCheckResult(true, 3, 10)
-	err := sdk.PledgeForGas(1500000)
+	err := sdk.PledgeForGasAndRam(1500000, 1000000000)
 	if err != nil {
 		panic(err)
 	}
@@ -155,8 +155,8 @@ func publish() string {
 }
 
 func main() {
-	var iterNum = 800
-	var parallelNum = 30
+	var iterNum = 80000000
+	var parallelNum = 10
 	initConn(parallelNum)
 	contractID = publish()
 	start := time.Now()
