@@ -36,7 +36,7 @@ var (
 
 var (
 	blockReqTimeout   = 3 * time.Second
-	continuousNum     = 10
+	continuousNum     int
 	subSlotTime       = 300 * time.Millisecond
 	genBlockTime      = 250 * time.Millisecond
 	last2GenBlockTime = 30 * time.Millisecond
@@ -91,17 +91,29 @@ func New(account *account.KeyPair, baseVariable global.BaseVariable, blockCache 
 		wg:               new(sync.WaitGroup),
 		mu:               new(sync.RWMutex),
 	}
+	continuousNum = baseVariable.Continuous()
 	staticProperty = newStaticProperty(p.account, blockCache.LinkedRoot().Active())
-	err := p.blockCache.Recover(&p)
-	if err != nil {
-		ilog.Error("Failed to recover blockCache")
-	}
+	p.recoverBlockcache()
 	close(p.quitGenerateMode)
 	return &p
 }
 
+func (p *PoB) recoverBlockcache() error {
+	err := p.blockCache.Recover(p)
+	if err != nil {
+		ilog.Error("Failed to recover blockCache, err: ", err)
+		ilog.Info("Don't Recover, Move old file to BlockCacheWALCorrupted")
+		err = p.blockCache.NewWAL(p.baseVariable.Config())
+		if err != nil {
+			ilog.Error(" Failed to NewWAL, err: ", err)
+		}
+	}
+	return err
+}
+
 //Start make the PoB run.
 func (p *PoB) Start() error {
+
 	p.wg.Add(4)
 	go p.messageLoop()
 	go p.blockLoop()
