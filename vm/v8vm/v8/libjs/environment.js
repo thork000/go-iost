@@ -315,8 +315,9 @@
 
     const Arrayconcat = Array.prototype.concat;
     Array.prototype.concat = function() {
-        _IOSTInstruction_counter.incr(this.length);
-        return Arrayconcat.call(this, ...arguments);
+        const result = Arrayconcat.call(this, ...arguments);
+        _IOSTInstruction_counter.incr(result.length);
+        return result;
     };
 
     const Arrayevery = Array.prototype.every;
