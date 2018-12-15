@@ -174,7 +174,7 @@ func (p *PoB) messageLoop() {
 func (p *PoB) handleRecvBlockHash(blkInfo *msgpb.BlockInfo, peerID p2p.PeerID) {
 	_, ok := p.blockReqMap.Load(string(blkInfo.Hash))
 	if ok {
-		//ilog.Debug("block in block request map, block number: ", blkInfo.Number)
+		ilog.Debug("block in block request map, block number: ", blkInfo.Number)
 		return
 	}
 	_, err := p.blockCache.Find(blkInfo.Hash)
