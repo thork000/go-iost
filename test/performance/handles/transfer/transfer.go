@@ -9,14 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/iost-official/go-iost/iwallet"
-	"github.com/iost-official/go-iost/test/performance/call"
-
 	"github.com/iost-official/go-iost/account"
 	"github.com/iost-official/go-iost/common"
+	"github.com/iost-official/go-iost/core/contract"
 	"github.com/iost-official/go-iost/core/tx"
 	"github.com/iost-official/go-iost/crypto"
+	"github.com/iost-official/go-iost/iwallet"
 	"github.com/iost-official/go-iost/rpc/pb"
+	"github.com/iost-official/go-iost/test/performance/call"
 )
 
 func init() {
@@ -69,7 +69,7 @@ func (t *transferHandler) Prepare() error {
 	client := call.GetClient(0)
 	sdk.SetServer(client.Addr())
 	sdk.SetAccount("admin", acc)
-	sdk.SetTxInfo(50000.0, 1.0, 90, 0)
+	sdk.SetTxInfo(1000000.0, 1.0, 90, 0, "*:unlimited")
 	sdk.SetCheckResult(true, 3, 10)
 	testKp, err := account.NewKeyPair(nil, crypto.Ed25519)
 	if err != nil {
@@ -108,7 +108,8 @@ func (t *transferHandler) Prepare() error {
 func (t *transferHandler) Run(i int) (interface{}, error) {
 	action := tx.NewAction(t.contractID, "transfer", fmt.Sprintf(`["admin","%v",1]`, t.testID))
 	acc, _ := account.NewKeyPair(common.Base58Decode(rootKey), crypto.Ed25519)
-	trx := tx.NewTx([]*tx.Action{action}, []string{}, 6000000, 100, time.Now().Add(time.Second*time.Duration(10000)).UnixNano(), 0)
+	trx := tx.NewTx([]*tx.Action{action}, []string{}, 10000000, 100, time.Now().Add(time.Second*time.Duration(10000)).UnixNano(), 0)
+	trx.AmountLimit = []*contract.Amount{{Token: "iost", Val: "unlimited"}}
 	stx, err := tx.SignTx(trx, "admin", []*account.KeyPair{acc})
 
 	if err != nil {

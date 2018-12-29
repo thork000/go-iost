@@ -50,11 +50,12 @@ func (s *SDK) SetAccount(name string, kp *account.KeyPair) {
 }
 
 // SetTxInfo ...
-func (s *SDK) SetTxInfo(gasLimit float64, gasRatio float64, expiration int64, delaySecond int64) {
+func (s *SDK) SetTxInfo(gasLimit float64, gasRatio float64, expiration int64, delaySecond int64, amountLimit string) {
 	s.gasLimit = gasLimit
 	s.gasRatio = gasRatio
 	s.expiration = expiration
 	s.delaySecond = delaySecond
+	s.amountLimit = amountLimit
 }
 
 // SetCheckResult ...

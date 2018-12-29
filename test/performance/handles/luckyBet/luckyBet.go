@@ -78,7 +78,7 @@ func (t *luckyBetHandler) Prepare() error {
 	client := call.GetClient(0)
 	sdk.SetServer(client.Addr())
 	sdk.SetAccount("admin", acc)
-	sdk.SetTxInfo(3000000.0, 1.0, 90, 0)
+	sdk.SetTxInfo(3000000.0, 1.0, 90, 0, "*:unlimited")
 	sdk.SetCheckResult(true, 3, 10)
 	var err error
 	t.testKp, err = account.NewKeyPair(nil, crypto.Ed25519)

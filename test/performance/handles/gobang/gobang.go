@@ -45,7 +45,7 @@ func (t *gobangHandle) Prepare() error {
 	abiPath := codePath + ".abi"
 	sdk.SetServer(call.GetClient(0).Addr())
 	sdk.SetAccount("admin", rootAcc)
-	sdk.SetTxInfo(10000000, 100, 90, 0)
+	sdk.SetTxInfo(10000000, 100, 90, 0, "*:unlimited")
 	sdk.SetCheckResult(true, 3, 10)
 	testAcc, err = account.NewKeyPair(nil, crypto.Ed25519)
 	if err != nil {
