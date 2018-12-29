@@ -14,10 +14,12 @@ const (
 	GasUpdateTimeKey = "gt"
 	// GasStockKey : how much gas is there when last time refreshed
 	GasStockKey = "gs"
-	// GasPledgeKey : who pledge how much coins for me
+	// GasPledgeKey : i pledge how much coins for others
 	GasPledgeKey = "gp"
 	// TransferableGasKey :
 	TransferableGasKey = "tg"
+	// TransferableGasQuotaKey :
+	TransferableGasQuotaKey = "tq"
 )
 
 // decimals of gas
@@ -127,14 +129,14 @@ func (g *GasHandler) ChangeTGas(name string, delta *common.Fixed) {
 
 // GasPledge ...
 func (g *GasHandler) GasPledge(name string, pledger string) *common.Fixed {
-	ok := g.MapHandler.MHas(GasContractName+Separator+name+GasPledgeKey, pledger)
+	ok := g.MapHandler.MHas(GasContractName+Separator+pledger+GasPledgeKey, name)
 	if !ok {
 		return &common.Fixed{
 			Value:   0,
 			Decimal: 8,
 		}
 	}
-	result := MustUnmarshal(g.MapHandler.MGet(GasContractName+Separator+name+GasPledgeKey, pledger))
+	result := MustUnmarshal(g.MapHandler.MGet(GasContractName+Separator+pledger+GasPledgeKey, name))
 	value, ok := result.(*common.Fixed)
 	if !ok {
 		return nil
@@ -142,18 +144,18 @@ func (g *GasHandler) GasPledge(name string, pledger string) *common.Fixed {
 	return value
 }
 
-// PledgerInfo get who pledged how much coins for me
+// PledgerInfo get I pledged how much coins for others
 func (g *GasHandler) PledgerInfo(name string) []PledgerInfo {
-	pledgers := g.MapHandler.MKeys(GasContractName + Separator + name + GasPledgeKey)
+	pledgees := g.MapHandler.MKeys(GasContractName + Separator + name + GasPledgeKey)
 	result := make([]PledgerInfo, 0)
-	for _, pledger := range pledgers {
-		s := g.MapHandler.MGet(GasContractName+Separator+name+GasPledgeKey, pledger)
+	for _, pledgee := range pledgees {
+		s := g.MapHandler.MGet(GasContractName+Separator+name+GasPledgeKey, pledgee)
 		v := MustUnmarshal(s)
 		pledge, ok := v.(*common.Fixed)
 		if !ok {
 			return make([]PledgerInfo, 0)
 		}
-		result = append(result, PledgerInfo{pledger, pledge})
+		result = append(result, PledgerInfo{pledgee, pledge})
 	}
 	return result
 }
@@ -165,9 +167,9 @@ func (g *GasHandler) PGasAtTime(name string, t int64) (result *common.Fixed) {
 	}
 	result = g.GasStock(name)
 	gasUpdateTime := g.GasUpdateTime(name)
-	var durationSeconds int64
+	var durationSeconds float64
 	if gasUpdateTime > 0 {
-		durationSeconds = (t - gasUpdateTime) / 1e9
+		durationSeconds = float64(t-gasUpdateTime) / float64(1e9)
 		if durationSeconds > gasMaxIncreaseSeconds {
 			durationSeconds = gasMaxIncreaseSeconds
 		}
@@ -177,8 +179,8 @@ func (g *GasHandler) PGasAtTime(name string, t int64) (result *common.Fixed) {
 	}
 	rate := g.GasRate(name)
 	limit := g.GasLimit(name)
-	//fmt.Printf("PGasAtTime user %v stock %v rate %v limit %v\n", name, result, rate, limit)
-	delta := rate.Times(durationSeconds)
+	//fmt.Printf("PGasAtTime user %v stock %v rate %v limit %v durationSeconds %v\n", name, result, rate, limit, durationSeconds)
+	delta := rate.TimesF(durationSeconds)
 	if delta == nil {
 		ilog.Errorf("PGasAtTime may overflow rate %v durationSeconds %v", rate, durationSeconds)
 		return

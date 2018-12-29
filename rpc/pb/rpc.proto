@@ -108,6 +108,14 @@ service ApiService {
         };
     }
 
+    // get contract fields storage
+    rpc GetContractStorageFields (GetContractStorageFieldsRequest) returns (GetContractStorageFieldsResponse) {
+        option (google.api.http) = {
+            post: "/getContractStorageFields"
+            body: "*"
+        };
+    }
+
     // send transaction
     rpc SendTransaction (TransactionRequest) returns (SendTransactionResponse) {
         option (google.api.http) = {
@@ -487,6 +495,10 @@ message Account {
     message RAMInfo {
         // available ram bytes
         int64 available = 1;
+        // used ram bytes
+        int64 used = 2;
+        // total ram bytes
+        int64 total = 3;
     }
 
     // ram information
@@ -588,6 +600,22 @@ message GetContractStorageRequest {
 
 // The message defines get contract storage response.
 message GetContractStorageResponse {
+    // the json string data
+    string data = 1;
+}
+
+// The message defines get contract storage request.
+message GetContractStorageFieldsRequest {
+    // contract id
+    string id = 1;
+    // get the fields from StateDB
+    string fields = 2;
+    // get data by longest chain's head block or last irreversible block
+    bool by_longest_chain = 3;
+}
+
+// The message defines get contract storage response.
+message GetContractStorageFieldsResponse {
     // the json string data
     string data = 1;
 }
