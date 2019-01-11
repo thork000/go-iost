@@ -78,7 +78,6 @@ func generateBlock(acc *account.KeyPair, txPool txpool.TxPool, db db.MVCCDB, lim
 }
 
 func verifyBasics(head *block.BlockHead, signature *crypto.Signature) error {
-
 	signature.SetPubkey(account.GetPubkeyByID(head.Witness))
 	hash, err := head.Hash()
 	if err != nil {
@@ -123,7 +122,6 @@ func verifyBlock(blk *block.Block, parent *block.Block, lib *block.Block, txPool
 			if err != nil {
 				return errTxSignature
 			}
-
 		}
 		if t.IsDefer() {
 			referredTx, err := chain.GetTx(t.ReferredTx)
@@ -139,7 +137,7 @@ func verifyBlock(blk *block.Block, parent *block.Block, lib *block.Block, txPool
 	v := verifier.Verifier{}
 	return v.Verify(blk, parent, db, &verifier.Config{
 		Mode:        0,
-		Timeout:     time.Millisecond * 250,
+		Timeout:     genBlockTime,
 		TxTimeLimit: time.Millisecond * 100,
 	})
 }
