@@ -8,8 +8,9 @@ import (
 
 	"github.com/iost-official/go-iost/core/contract"
 
-	"github.com/iost-official/go-iost/ilog"
 	"reflect"
+
+	"github.com/iost-official/go-iost/ilog"
 )
 
 // Constant of itest
@@ -52,6 +53,11 @@ func (t *ITest) GetDefaultAccount() *Account {
 // GetClients returns the clients
 func (t *ITest) GetClients() []*Client {
 	return t.clients
+}
+
+// GetRandomClient returns a random client.
+func (t *ITest) GetRandomClient() *Client {
+	return t.GetClients()[rand.Intn(len(t.GetClients()))]
 }
 
 // Load will load the itest from file
