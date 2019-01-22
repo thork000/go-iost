@@ -1,6 +1,7 @@
 package pob
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"time"
@@ -89,7 +90,8 @@ func verifyBasics(blk *block.Block, signature *crypto.Signature) error {
 	return nil
 }
 
-func verifyBlock(blk *block.Block, parent *block.Block, lib *block.Block, txPool txpool.TxPool, db db.MVCCDB, chain block.Chain, replay bool) error {
+func verifyBlock(blk *block.Block, parent *block.Block, bc blockcache.BlockCache, txPool txpool.TxPool, db db.MVCCDB, chain block.Chain, replay bool) error {
+	lib := bc.LinkedRoot().Block
 	err := cverifier.VerifyBlockHead(blk, parent, lib)
 	if err != nil {
 		return err
@@ -98,7 +100,14 @@ func verifyBlock(blk *block.Block, parent *block.Block, lib *block.Block, txPool
 	if replay == false && witnessOfNanoSec(blk.Head.Time) != blk.Head.Witness {
 		ilog.Errorf("blk num: %v, time: %v, witness: %v, witness len: %v, witness list: %v",
 			blk.Head.Number, blk.Head.Time, blk.Head.Witness, staticProperty.NumberOfWitnesses, staticProperty.WitnessList())
-		return errWitness
+		if bytes.Compare(blk.Head.ParentHash, bc.Head().HeadHash()) != 0 {
+			ilog.Info("Fork blockchain")
+			if !bc.Head().IsWitness(blk.Head.Witness) {
+				return errWitness
+			}
+		} else {
+			return errWitness
+		}
 	}
 	ilog.Debugf("[pob] start to verify block if foundchain, number: %v, hash = %v, witness = %v", blk.Head.Number, common.Base58Encode(blk.HeadHash()), blk.Head.Witness[4:6])
 	blkTxSet := make(map[string]bool, len(blk.Txs))

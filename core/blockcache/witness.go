@@ -6,6 +6,7 @@ import (
 	"github.com/iost-official/go-iost/db"
 	"github.com/iost-official/go-iost/vm/database"
 	"strconv"
+	"strings"
 )
 
 // SetPending set pending witness list
@@ -99,6 +100,16 @@ func (wl *WitnessList) UpdateInfo(mv db.MVCCDB) error {
 		wl.WitnessInfo[v] = &str
 	}
 	return nil
+}
+
+// IsActiveWitness is check witness
+func (wl *WitnessList) IsWitness(w string) bool {
+	for _, v := range wl.ActiveWitnessList {
+		if strings.Compare(v, w) == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // LibWitnessHandle is set active list
