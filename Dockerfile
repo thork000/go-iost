@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM bitnami/minideb:jessie
 
 # Install project
 WORKDIR /workdir
