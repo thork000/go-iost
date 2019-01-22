@@ -541,9 +541,9 @@ func (bc *BlockCacheImpl) flush(retain *BlockCacheNode) error {
 		}
 		bc.delNode(cur)
 		retain.SetParent(nil)
-		retain.LibWitnessHandle()
 		// Copy lib active to the head node
 		bc.head.SetActive(retain.Active())
+		retain.LibWitnessHandle()
 		bc.SetLinkedRoot(retain)
 
 		metricsTxTotal.Set(float64(bc.blockChain.TxTotal()), nil)
