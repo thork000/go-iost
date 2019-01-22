@@ -101,7 +101,7 @@ func verifyBlock(blk *block.Block, parent *block.Block, bc blockcache.BlockCache
 		ilog.Errorf("blk num: %v, time: %v, witness: %v, witness len: %v, witness list: %v",
 			blk.Head.Number, blk.Head.Time, blk.Head.Witness, staticProperty.NumberOfWitnesses, staticProperty.WitnessList())
 		if bytes.Compare(blk.Head.ParentHash, bc.Head().HeadHash()) != 0 {
-			ilog.Info("Fork blockchain")
+			ilog.Info("Fork blockchain, blockCache head witness:", bc.Head().Active())
 			if !bc.Head().IsWitness(blk.Head.Witness) {
 				return errWitness
 			}
