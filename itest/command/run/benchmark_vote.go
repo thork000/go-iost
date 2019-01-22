@@ -11,12 +11,14 @@ import (
 	"github.com/urfave/cli"
 )
 
+// CandidateManager manages candidates' votes.
 type CandidateManager struct {
 	candidates   []*itest.Account
 	candidateMap map[string]int
 	rw           sync.RWMutex
 }
 
+// RandomCandidate returns a random candidate.
 func (cm *CandidateManager) RandomCandidate() *itest.Account {
 	cm.rw.RLock()
 	defer cm.rw.RUnlock()
@@ -27,6 +29,7 @@ func (cm *CandidateManager) RandomCandidate() *itest.Account {
 	return cm.candidates[rand.Intn(len(cm.candidates))]
 }
 
+// IsCandidate returns whether account is a candidate.
 func (cm *CandidateManager) IsCandidate(acc *itest.Account) bool {
 	cm.rw.RLock()
 	defer cm.rw.RUnlock()
@@ -35,6 +38,7 @@ func (cm *CandidateManager) IsCandidate(acc *itest.Account) bool {
 	return exist
 }
 
+// AddCandidate adds a candidate.
 func (cm *CandidateManager) AddCandidate(acc *itest.Account) {
 	cm.rw.Lock()
 	defer cm.rw.Unlock()
@@ -45,6 +49,7 @@ func (cm *CandidateManager) AddCandidate(acc *itest.Account) {
 	}
 }
 
+// RemoveCandidate removes a candidate.
 func (cm *CandidateManager) RemoveCandidate(acc *itest.Account) {
 	cm.rw.Lock()
 	defer cm.rw.Unlock()
@@ -75,7 +80,7 @@ var BenchmarkVoteFlags = []cli.Flag{
 
 // BenchmarkVoteAction is the action of benchmark.
 var BenchmarkVoteAction = func(c *cli.Context) error {
-	it, err := itest.Load(c.GlobalString("keys"), c.GlobalString("config"))
+	_, err := itest.Load(c.GlobalString("keys"), c.GlobalString("config"))
 	if err != nil {
 		return err
 	}
@@ -93,7 +98,7 @@ var BenchmarkVoteAction = func(c *cli.Context) error {
 	for _, acc := range accounts {
 		accountMap[acc.ID] = acc
 	}
-	tps := c.Int("tps")
+	_ = c.Int("tps")
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
