@@ -1,25 +1,28 @@
 package run
 
 import (
+	"context"
 	"math/rand"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
+	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/itest"
+	"github.com/uber-go/atomic"
 	"github.com/urfave/cli"
 )
 
-// CandidateManager manages candidates' votes.
-type CandidateManager struct {
-	candidates   []*itest.Account
-	candidateMap map[string]int
-	rw           sync.RWMutex
+// VoteManager manages accounts' voting and withdrawal.
+type VoteManager struct {
+	voteTimes map[string]int
+	rw        sync.RWMutex
 }
 
 // RandomCandidate returns a random candidate.
-func (cm *CandidateManager) RandomCandidate() *itest.Account {
+func (vm *VoteManager) RandomCandidate() *itest.Account {
 	cm.rw.RLock()
 	defer cm.rw.RUnlock()
 
@@ -78,9 +81,48 @@ var BenchmarkVoteFlags = []cli.Flag{
 	},
 }
 
+func checkVoteReceipt(ctx context.Context, it *itest.ITest, items <-chan *hashItem) {
+	var counter atomic.Int64
+	var failed atomic.Int64
+	for i := 0; i < 64; i++ {
+		go func() {
+			select {
+			case <-ctx.Done():
+				println("checkreceipt done")
+				return
+			case item := <-items:
+				r, err := it.GetRandomClient().CheckTransactionWithTimeout(item.hash, item.expire)
+				counter.Inc()
+				if err != nil {
+					ilog.Errorf("check transaction failed, txHash=%v, err=%v", item.hash, err)
+					failed.Inc()
+				}
+				c, f := counter.Load(), failed.Load()
+				if c%1000 == 0 {
+					ilog.Infof("check %d receipts, %d success, %d failed", c, c-f, f)
+				}
+			}
+		}()
+	}
+}
+
+func sendVoteTx(ctx context.Context, it *itest.ITest, accounts []itest.Account, candidates []string, tps int) {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	select {
+	case <-ctx.Done():
+		return
+	case <-ticker.C:
+		trxs := make([]*itest.Transaction, 0, tps)
+		for i := 0; i < tps; i++ {
+
+		}
+	}
+}
+
 // BenchmarkVoteAction is the action of benchmark.
 var BenchmarkVoteAction = func(c *cli.Context) error {
-	_, err := itest.Load(c.GlobalString("keys"), c.GlobalString("config"))
+	it, err := itest.Load(c.GlobalString("keys"), c.GlobalString("config"))
 	if err != nil {
 		return err
 	}
@@ -94,13 +136,18 @@ var BenchmarkVoteAction = func(c *cli.Context) error {
 			return err
 		}
 	}
-	accountMap := make(map[string]*itest.Account)
-	for _, acc := range accounts {
-		accountMap[acc.ID] = acc
-	}
-	_ = c.Int("tps")
+	tps := c.Int("tps")
+	hashCh := make(chan *hashItem, 4*tps*int(itest.Timeout.Seconds()))
+	ctx, cancel := context.WithCancel(context.Background())
+
+	checkVoteReceipt(ctx, it, hashCh)
+	sendVoteTx(ctx, it, accounts, tps)
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	<-sig
+	cancel()
+	ilog.Info("quit vote benckmark, wait all goroutines to be closed for one second")
+	time.Sleep(time.Second)
 	return nil
 }
