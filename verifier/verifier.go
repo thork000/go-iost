@@ -339,7 +339,7 @@ func verifyBlockBase(blk, parent *block.Block, witnessList *blockcache.WitnessLi
 	if r.Status.Code != tx.Success {
 		return fmt.Errorf("block base tx receipt error: %v", r.Status.Message)
 	}
-	err = checkReceiptEqual(r, blk.Receipts[0])
+	err = checkReceiptEqual(blk.Receipts[0], r)
 	if err != nil {
 		return err
 	}
@@ -385,7 +385,7 @@ func verify(isolator vm.Isolator, t *tx.Tx, r *tx.TxReceipt, timeout time.Durati
 }
 
 func checkReceiptEqual(r *tx.TxReceipt, receipt *tx.TxReceipt) error {
-	if r.Status.Code != receipt.Status.Code || r.Status.Message != r.Status.Message {
+	if r.Status.Code != receipt.Status.Code || r.Status.Message != receipt.Status.Message {
 		return fmt.Errorf("receipt not match, status not same: %v != %v \n%v\n%v", r.Status, receipt.Status, r, receipt)
 	}
 	if r.GasUsage != receipt.GasUsage {
