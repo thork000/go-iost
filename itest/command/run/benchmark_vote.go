@@ -2,7 +2,6 @@ package run
 
 import (
 	"context"
-	"math/rand"
 	"os"
 	"os/signal"
 	"sync"
@@ -15,52 +14,74 @@ import (
 	"github.com/urfave/cli"
 )
 
+// Candidate defines a candidate account.
+type Candidate struct {
+	*itest.Account
+
+	initVotes int64 // the votes he has received when itest starts
+
+	availableBonus atomic.Float64 // the bonus he hasn't withdrawed
+}
+
+// Voter defines an account who votes.
+type Voter struct {
+	*itest.Account
+
+	initVotes map[string]int64 // the votes he has voted when itest starts
+	incVotes  map[string]int64 // the votes he has voted after starting
+}
+
+// CandidateManager manages candidate's votes and withdrawal.
+type CandidateManager struct {
+	candidates   map[string]*Candidate
+	candidateIDs []string
+	it           *itest.ITest
+}
+
 // VoteManager manages accounts' voting and withdrawal.
 type VoteManager struct {
-	voteTimes map[string]int
-	rw        sync.RWMutex
+	voters   map[string]*Voter
+	voterIDs []string
+	rw       sync.RWMutex
 }
 
-// RandomCandidate returns a random candidate.
-func (vm *VoteManager) RandomCandidate() *itest.Account {
-	cm.rw.RLock()
-	defer cm.rw.RUnlock()
-
-	if len(cm.candidates) == 0 {
-		return nil
+// NewCandidateManager returns a new CandidateManager instance.
+func NewCandidateManager(candidates []*itest.Account, it *itest.ITest) *CandidateManager {
+	cm := &CandidateManager{
+		candidates:   make(map[string]*Candidate),
+		candidateIDs: make([]string, 0, len(candidates)),
+		it:           it,
 	}
-	return cm.candidates[rand.Intn(len(cm.candidates))]
+	for _, candidate := range candidates {
+		cm.candidates[candidate.ID] = &Candidate{Account: candidate}
+		cm.candidateIDs = append(cm.candidateIDs, candidate.ID)
+	}
+	return cm
 }
 
-// IsCandidate returns whether account is a candidate.
-func (cm *CandidateManager) IsCandidate(acc *itest.Account) bool {
-	cm.rw.RLock()
-	defer cm.rw.RUnlock()
-
-	_, exist := cm.candidateMap[acc.ID]
-	return exist
+func (cm *CandidateManager) getVotes(accID string) int64 {
+	cm.it.GetRandomClient()
 }
 
-// AddCandidate adds a candidate.
-func (cm *CandidateManager) AddCandidate(acc *itest.Account) {
-	cm.rw.Lock()
-	defer cm.rw.Unlock()
+// Recover recovers candidates' votes and bonus.
+func (cm *CandidateManager) Recover() {
 
-	if _, exist := cm.candidateMap[acc.ID]; !exist {
-		cm.candidates = append(cm.candidates, acc)
-		cm.candidateMap[acc.ID] = len(cm.candidates) - 1
+}
+
+// NewVoteManager returns a new VoteManager instance.
+func NewVoteManager() *VoteManager {
+	return &VoteManager{
+		votes: make(map[string]int),
+		bonus: make(map[string]float64),
 	}
 }
 
-// RemoveCandidate removes a candidate.
-func (cm *CandidateManager) RemoveCandidate(acc *itest.Account) {
-	cm.rw.Lock()
-	defer cm.rw.Unlock()
+// AddVotes add votes to an account.
+func (vm *VoteManager) AddVotes(acc *itest.Account, votes int) {
+	vm.rw.Lock()
+	defer vm.rw.Unlock()
 
-	if i, exist := cm.candidateMap[acc.ID]; exist {
-		delete(cm.candidateMap, acc.ID)
-		cm.candidates = append(cm.candidates[0:i], cm.candidates[i+1:]...)
-	}
+	vm.votes[acc.ID] = vm.votes[acc.ID] + votes
 }
 
 // BenchmarkVoteCommand is the subcommand for benchmark of vote_producer.iost.

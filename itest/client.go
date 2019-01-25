@@ -176,42 +176,6 @@ func (c *Client) CheckTransactionWithTimeout(hash string, expire time.Time) (*Re
 	}
 }
 
-// GetIrrevesibleTransaction will keep getting irrevesible transaction util time expires.
-func (c *Client) GetIrrevesibleTransaction(hash string, expire time.Time) (*Transaction, *Receipt, error) {
-	ticker := time.NewTimer(0)
-	defer ticker.Stop()
-
-	now := time.Now()
-
-	var timer *time.Timer
-	if expire.Before(now) {
-		timer = time.NewTimer(2 * time.Millisecond)
-	} else {
-		timer = time.NewTimer(time.Until(expire))
-	}
-	defer timer.Stop()
-
-	for {
-		select {
-		case <-timer.C:
-			return nil, nil, fmt.Errorf("transaction be on chain timeout: %v", hash)
-		case <-ticker.C:
-			ilog.Debugf("Get receipt for %v...", hash)
-			t, err := c.GetTransaction(hash)
-			if err != nil {
-				ticker.Reset(Interval)
-				break
-			}
-			ilog.Debugf("Get receipt for %v successful!", hash)
-
-			if !r.Success() {
-				return nil, fmt.Errorf("%v: %v", r.Status.Code, r.Status.Message)
-			}
-			return r, nil
-		}
-	}
-}
-
 func (c *Client) checkTransaction(hash string) error {
 	ticker := time.NewTicker(Interval)
 	defer ticker.Stop()
