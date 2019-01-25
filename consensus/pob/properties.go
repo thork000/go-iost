@@ -1,6 +1,7 @@
 package pob
 
 import (
+	"github.com/iost-official/go-iost/ilog"
 	"strings"
 	"sync"
 
@@ -48,6 +49,7 @@ func witnessOfSec(sec int64, witnessList []string) string {
 
 func witnessOfSlot(slot int64, witnessList []string) string {
 	index := slot % staticProperty.NumberOfWitnesses
+	ilog.Infof("witnessList len:%v ,index: %v ,slot: %v, NumOfWitness: %v", len(witnessList), index, slot, staticProperty.NumberOfWitnesses)
 	witness := witnessList[index]
 	return witness
 }

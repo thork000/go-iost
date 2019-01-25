@@ -326,6 +326,7 @@ func (p *PoB) scheduleLoop() {
 			t := time.Now()
 			_, head := p.txPool.PendingTx()
 			witnessList := head.Active()
+			ilog.Infof("witnessList len: %v ", len(witnessList))
 			if slotFlag != slotOfSec(t.Unix()) && p.baseVariable.Mode() == global.ModeNormal && witnessOfNanoSec(t.UnixNano(), witnessList) == pubkey {
 				p.quitGenerateMode = make(chan struct{})
 				slotFlag = slotOfSec(t.Unix())
