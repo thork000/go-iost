@@ -94,9 +94,11 @@ func New(account *account.KeyPair, baseVariable global.BaseVariable, blockCache 
 		mu:               new(sync.RWMutex),
 	}
 	continuousNum = baseVariable.Continuous()
-	staticProperty = newStaticProperty(p.account, int64(len(blockCache.LinkedRoot().Pending())))
+
 	p.recoverBlockcache()
 	close(p.quitGenerateMode)
+
+	common.MaxTxTimeLimit = time.Millisecond * time.Duration(baseVariable.Config().VM.MaxTxLimitTime)
 	return &p
 }
 
@@ -339,6 +341,8 @@ func (p *PoB) scheduleLoop() {
 					select {
 					case <-generateBlockTicker.C:
 					}
+					_, head = p.txPool.PendingTx()
+					witnessList = head.Active()
 					if witnessOfNanoSec(time.Now().UnixNano(), witnessList) != pubkey {
 						break
 					}
@@ -455,10 +459,11 @@ func (p *PoB) addExistingBlock(blk *block.Block, parentBlock *block.Block, repla
 	}
 	p.txPool.AddLinkedNode(node)
 	p.blockCache.Link(node)
-	updateLib(node, p.blockCache)
-	p.blockCache.AddNodeToWAL(node)
+	p.blockCache.UpdateLib(node)
 
-	if staticProperty.isWitness(p.account.ReadablePubkey(), p.blockCache.Head().Active()) {
+	metricsConfirmedLength.Set(float64(p.blockCache.LinkedRoot().Head.Number), nil)
+
+	if isWitness(p.account.ReadablePubkey(), p.blockCache.Head().Active()) {
 		p.p2pService.ConnectBPs(p.blockCache.LinkedRoot().NetID())
 	}
 
