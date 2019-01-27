@@ -10,7 +10,7 @@ import (
 
 // Constant of limit
 var (
-	MaxBlockGasLimit = int64(500000000)
+	MaxBlockGasLimit = int64(800000000)
 	MaxTxTimeLimit   = 200 * time.Millisecond
 )
 
@@ -55,9 +55,8 @@ type DBConfig struct {
 
 // VMConfig config of the v8vm
 type VMConfig struct {
-	JsPath         string
-	LogLevel       string
-	MaxTxLimitTime int64
+	JsPath   string
+	LogLevel string
 }
 
 // P2PConfig is the config for p2p network.
