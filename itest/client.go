@@ -18,7 +18,7 @@ import (
 
 // Constant of Client
 var (
-	Interval   = 15 * time.Second
+	Interval   = 10 * time.Second
 	Timeout    = (90 + 30) * time.Second
 	InitToken  = "iost"
 	InitAmount = "1000000"
@@ -182,37 +182,41 @@ func (c *Client) SendTransaction(transaction *Transaction, check bool) (string, 
 }
 
 // CheckTransactionWithTimeout will check transaction receipt with expire time
-func (c *Client) CheckTransactionWithTimeout(hash string, expire time.Time) (*Receipt, error) {
-	ticker := time.NewTicker(Interval)
-	defer ticker.Stop()
-	var afterTimeout <-chan time.Time
-	now := time.Now()
-
-	var timer *time.Timer
-	if expire.Before(now) {
-		timer = time.NewTimer(2 * time.Millisecond)
-	} else {
-		timer = time.NewTimer(time.Until(expire))
-	}
-	afterTimeout = timer.C
+func (c *Client) CheckTransactionWithTimeout(hash string, expire time.Time) (*Transaction, *Receipt, error) {
+	timer := time.NewTimer(0)
 	defer timer.Stop()
+
+	now := time.Now()
+	var timeout *time.Timer
+	if expire.Before(now) {
+		timeout = time.NewTimer(2 * time.Millisecond)
+	} else {
+		timeout = time.NewTimer(time.Until(expire))
+	}
+	defer timeout.Stop()
 
 	for {
 		select {
-		case <-afterTimeout:
-			return nil, fmt.Errorf("transaction be on chain timeout: %v", hash)
-		case <-ticker.C:
+		case <-timeout.C:
+			return nil, nil, fmt.Errorf("transaction be on chain timeout: %v", hash)
+		case <-timer.C:
+			timer.Reset(Interval)
+
 			ilog.Debugf("Get receipt for %v...", hash)
 			r, err := c.GetReceipt(hash)
 			if err != nil {
 				break
 			}
 			ilog.Debugf("Get receipt for %v successful!", hash)
-
 			if !r.Success() {
-				return nil, fmt.Errorf("%v: %v", r.Status.Code, r.Status.Message)
+				return nil, nil, fmt.Errorf("%v: %v", r.Status.Code, r.Status.Message)
 			}
-			return r, nil
+
+			t, err := c.GetTransaction(hash)
+			if err != nil {
+				break
+			}
+			return t, r, nil
 		}
 	}
 }

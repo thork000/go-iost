@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"fmt"
+	"math/rand"
+	"sync"
+
 	"github.com/iost-official/go-iost/core/tx"
 	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/itest"
 	"github.com/urfave/cli"
-	"math/rand"
-	"sync"
 )
 
 // BenchmarkSystemCommand is the subcommand for benchmark system.iost.
@@ -119,7 +120,7 @@ var BenchmarkSystemAction = func(c *cli.Context) error {
 			failedCounter := 0
 			for item := range hashCh {
 				client := it.GetClients()[rand.Intn(len(it.GetClients()))]
-				_, err := client.CheckTransactionWithTimeout(item.hash, item.expire)
+				_, _, err := client.CheckTransactionWithTimeout(item.hash, item.expire)
 				//ilog.Infof("receipt %v", r)
 				counter++
 				if err != nil {

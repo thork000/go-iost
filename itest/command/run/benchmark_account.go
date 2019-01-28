@@ -1,19 +1,21 @@
 package run
 
 import (
-	"github.com/iost-official/go-iost/account"
-	"github.com/iost-official/go-iost/crypto"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/iost-official/go-iost/account"
+	"github.com/iost-official/go-iost/crypto"
+
 	"fmt"
+	"math/rand"
+
 	"github.com/iost-official/go-iost/core/tx"
 	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/itest"
 	"github.com/urfave/cli"
-	"math/rand"
 )
 
 // BenchmarkAccountCommand is the subcommand for benchmark.
@@ -214,13 +216,12 @@ var BenchmarkAccountAction = func(c *cli.Context) error {
 			failedCounter := 0
 			for item := range hashCh {
 				client := it.GetClients()[rand.Intn(len(it.GetClients()))]
-				_, err := client.CheckTransactionWithTimeout(item.hash, item.expire)
+				_, _, err := client.CheckTransactionWithTimeout(item.hash, item.expire)
 				counter++
 				if err != nil {
 					ilog.Errorf("check transaction failed, %v", err)
 					failedCounter++
 				}
-
 				if counter%1000 == 0 {
 					ilog.Warnf("check %v transaction, %v successful, %v failed.", counter, counter-failedCounter, failedCounter)
 				}

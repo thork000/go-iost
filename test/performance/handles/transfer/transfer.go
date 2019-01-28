@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -73,7 +74,7 @@ func (t *transferHandler) Prepare() error {
 	sdk.SetServer(client.Addr())
 	sdk.SetAccount("admin", acc)
 	sdk.SetTxInfo(500000.0, 1.0, 90, 0)
-	sdk.SetCheckResult(true, 3, 10)
+	sdk.SetCheckResult(true, 3, 20)
 	sdk.SetAmountLimit("*:unlimited")
 	testKp, err := account.NewKeyPair(nil, crypto.Ed25519)
 	if err != nil {
@@ -94,7 +95,7 @@ func (t *transferHandler) Prepare() error {
 	if err != nil {
 		return err
 	}
-	time.Sleep(time.Duration(30) * time.Second)
+	time.Sleep(time.Duration(40) * time.Second)
 	resp, err := client.GetTxReceiptByTxHash(context.Background(), &rpcpb.TxHashRequest{Hash: txHash})
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func (t *transferHandler) Prepare() error {
 func (t *transferHandler) Run(i int) (interface{}, error) {
 	action := tx.NewAction(t.contractID, "transfer", fmt.Sprintf(`["admin","%v",1]`, t.testID))
 	acc, _ := account.NewKeyPair(common.Base58Decode(rootKey), crypto.Ed25519)
-	trx := tx.NewTx([]*tx.Action{action}, []string{}, 6000000, 100, time.Now().Add(time.Second*time.Duration(10000)).UnixNano(), 0, chainID)
+	trx := tx.NewTx([]*tx.Action{action}, []string{}, 6000000, 100, math.MaxInt64, 0, chainID)
 	trx.AmountLimit = []*contract.Amount{{Token: "*", Val: "unlimited"}}
 	stx, err := tx.SignTx(trx, "admin", []*account.KeyPair{acc})
 

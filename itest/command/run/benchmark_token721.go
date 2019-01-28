@@ -8,14 +8,15 @@ import (
 
 	"encoding/json"
 	"fmt"
-	"github.com/iost-official/go-iost/core/tx"
-	"github.com/iost-official/go-iost/ilog"
-	"github.com/iost-official/go-iost/itest"
-	"github.com/urfave/cli"
 	"math"
 	"math/rand"
 	"strconv"
 	"sync"
+
+	"github.com/iost-official/go-iost/core/tx"
+	"github.com/iost-official/go-iost/ilog"
+	"github.com/iost-official/go-iost/itest"
+	"github.com/urfave/cli"
 )
 
 // BenchmarkToken721Command is the subcommand for benchmark.
@@ -112,7 +113,7 @@ var BenchmarkToken721Action = func(c *cli.Context) error {
 			failedCounter := 0
 			for item := range hashCh {
 				client := it.GetClients()[rand.Intn(len(it.GetClients()))]
-				r, err := client.CheckTransactionWithTimeout(item.hash, item.expire)
+				_, r, err := client.CheckTransactionWithTimeout(item.hash, item.expire)
 				ilog.Debugf("receipt: %v", r)
 				counter++
 				if err != nil {
