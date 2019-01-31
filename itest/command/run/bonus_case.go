@@ -23,7 +23,7 @@ var BonusCaseCommand = cli.Command{
 }
 
 func countBlockProducedBy(it *itest.ITest, acc string, number int64) (cnt int64, err error) {
-	data, _, _, err := it.GetContractStorage("vote_producer.iost", "producerTable", acc)
+	data, _, _, err := it.GetContractStorage("vote_producer.iost", "producerTable", acc, false)
 	if data == "" || err != nil {
 		return
 	}
@@ -84,7 +84,7 @@ var BonusCaseAction = func(c *cli.Context) error {
 		return err
 	}
 
-	data, _, number, err := it.GetContractStorage("token.iost", "TB"+acc, "contribute")
+	data, _, number, err := it.GetContractStorage("token.iost", "TB"+acc, "contribute", false)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ var BonusCaseAction = func(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	data1, _, _, err := it.GetContractStorage("bonus.iost", "blockContrib", "")
+	data1, _, _, err := it.GetContractStorage("bonus.iost", "blockContrib", "", false)
 	if err != nil {
 		return err
 	}

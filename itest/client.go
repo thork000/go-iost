@@ -114,7 +114,7 @@ func (c *Client) GetAccount(name string) (*Account, error) {
 }
 
 // GetContractStorage will get contract storage by contract id, key and field
-func (c *Client) GetContractStorage(id, key, field string) (data string, hash string, number int64, err error) {
+func (c *Client) GetContractStorage(id, key, field string, byLongestChain bool) (data string, hash string, number int64, err error) {
 	data, hash, number = "", "", 0
 	grpc, err := c.getGRPC()
 	if err != nil {
@@ -395,28 +395,6 @@ func (c *Client) SetContract(creator *Account, contract *Contract) (string, erro
 		return "", err
 	}
 	return fmt.Sprintf("Contract%v", hash), nil
-}
-
-// GetContractStorage calls GetContractStorage API.
-func (c *Client) GetContractStorage(cid, key, field string, byLongestChain bool) (string, error) {
-	grpc, err := c.getGRPC()
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := grpc.GetContractStorage(
-		context.Background(),
-		&rpcpb.GetContractStorageRequest{
-			Id:             cid,
-			Key:            key,
-			Field:          field,
-			ByLongestChain: byLongestChain,
-		},
-	)
-	if err != nil {
-		return "", err
-	}
-	return resp.Data, nil
 }
 
 // ExecTx call ExecTransaction grpc API.

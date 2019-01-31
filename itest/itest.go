@@ -92,9 +92,9 @@ func (t *ITest) CreateAccountN(num int, randName bool, check bool) ([]*Account, 
 				defer sem.release()
 				var name string
 				if randName {
-					name = fmt.Sprintf("acc%08d", rand.Int63n(100000000))
+					name = fmt.Sprintf("aaa%08d", rand.Int63n(100000000))
 				} else {
-					name = fmt.Sprintf("account%04d", n)
+					name = fmt.Sprintf("aaaount%04d", n)
 				}
 
 				account, err := t.CreateAccount(t.GetDefaultAccount(), name, check)
@@ -758,11 +758,11 @@ func (t *ITest) GetAccount(name string) (*Account, error) {
 }
 
 // GetContractStorage will get contract storage by contract id, key and field
-func (t *ITest) GetContractStorage(id, key, field string) (data string, hash string, number int64, err error) {
+func (t *ITest) GetContractStorage(id, key, field string, byLongestChain bool) (data string, hash string, number int64, err error) {
 	cIndex := rand.Intn(len(t.clients))
 	client := t.clients[cIndex]
 
-	return client.GetContractStorage(id, key, field)
+	return client.GetContractStorage(id, key, field, byLongestChain)
 }
 
 // GetBlockByNumber will get block by number

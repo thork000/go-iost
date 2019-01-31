@@ -101,7 +101,7 @@ func (vm *VoteManager) stop() {
 // getVotes gets a voter's votes map.
 func (vm *VoteManager) getVotes(voterID string) (map[string]int64, error) {
 	ret := make(map[string]int64)
-	data, err := vm.it.GetRandomClient().GetContractStorage("vote.iost", "u_1", voterID, true)
+	data, _, _, err := vm.it.GetRandomClient().GetContractStorage("vote.iost", "u_1", voterID, true)
 	if err != nil {
 		return nil, fmt.Errorf("calling GetContractStorage failed. %v", err)
 	}
@@ -130,9 +130,12 @@ func (vm *VoteManager) getVotes(voterID string) (map[string]int64, error) {
 
 // getReceivedVotes gets a candidate's received votes.
 func (vm *VoteManager) getReceivedVotes(accID string) (int64, error) {
-	data, err := vm.it.GetRandomClient().GetContractStorage("vote.iost", "v_1", accID, true)
+	data, _, _, err := vm.it.GetRandomClient().GetContractStorage("vote.iost", "v_1", accID, true)
 	if err != nil {
 		return 0, fmt.Errorf("calling GetContractStorage failed. %v", err)
+	}
+	if data == "null" {
+		return 0, nil
 	}
 	j, err := simplejson.NewJson([]byte(data))
 	if err != nil {
@@ -161,10 +164,11 @@ func (vm *VoteManager) getAvailableBonus(acc *itest.Account, isCandidate bool) (
 	if err != nil {
 		return 0, fmt.Errorf("sign tx failed. %v", err)
 	}
-	receipt, err := vm.it.GetRandomClient().ExecTx(trx)
+	hash, err := vm.it.GetRandomClient().SendTransaction(trx, false)
 	if err != nil {
-		return 0, fmt.Errorf("exec tx failed. %v", err)
+		return 0, fmt.Errorf("send tx failed. %v", err)
 	}
+	_, receipt, err := vm.it.GetRandomClient().CheckTransactionWithTimeout(hash, time.Now().Add(time.Second*80))
 	if len(receipt.Returns) == 0 {
 		return 0, fmt.Errorf("no return from %s ABI. receipt=%+v", abi, *receipt)
 	}
@@ -241,7 +245,7 @@ func (vm *VoteManager) initCandidate() {
 
 			initVotes, err := vm.getReceivedVotes(candidate.ID)
 			if err != nil {
-				ilog.Errorf("getting candidate %s's initial votes failed. err=%v", candidate.ID, err)
+				ilog.Errorf("getting candidate %s's initial received votes failed. err=%v", candidate.ID, err)
 				brokenCandidates.Store(candidate.ID, struct{}{})
 			} else {
 				candidate.initVotes = initVotes
@@ -480,6 +484,14 @@ var BenchmarkVoteAction = func(c *cli.Context) error {
 	}
 	defer vm.stop()
 	ilog.Infof("candidate number: %d, voter number:%d", len(vm.candidates), len(vm.voters))
+
+	for _, c := range vm.candidates {
+		ilog.Warnf("%+v, %+v", c.ID, c)
+	}
+	for _, v := range vm.voters {
+		ilog.Warnf("%+v, %+v", v.ID, v)
+	}
+	return nil
 
 	tps := c.Int("tps")
 
