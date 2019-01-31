@@ -65,12 +65,6 @@ func (as *APIService) GetNodeInfo(context.Context, *rpcpb.EmptyRequest) (*rpcpb.
 		Id:        as.p2pService.ID(),
 		PeerCount: int32(len(p2pNeighbors)),
 	}
-	for _, p := range p2pNeighbors {
-		networkInfo.PeerInfo = append(networkInfo.PeerInfo, &rpcpb.PeerInfo{
-			Id:   p.ID(),
-			Addr: p.Addr(),
-		})
-	}
 	res.Network = networkInfo
 	return res, nil
 }
@@ -263,8 +257,8 @@ func (as *APIService) GetAccount(ctx context.Context, req *rpcpb.GetAccountReque
 	for _, v := range voteInfo {
 		ret.VoteInfos = append(ret.VoteInfos, &rpcpb.VoteInfo{
 			Option:       v.Option,
-			Votes:        v.Votes,
-			ClearedVotes: v.ClearedVotes,
+			Votes:        v.Votes.ToFloat(),
+			ClearedVotes: v.ClearedVotes.ToFloat(),
 		})
 	}
 
@@ -375,6 +369,32 @@ func (as *APIService) GetGasRatio(ctx context.Context, req *rpcpb.EmptyRequest) 
 	}, nil
 }
 
+// GetProducerVoteInfo returns producers's vote info
+func (as *APIService) GetProducerVoteInfo(ctx context.Context, req *rpcpb.GetProducerVoteInfoRequest) (*rpcpb.GetProducerVoteInfoResponse, error) {
+	dbVisitor, _, err := as.getStateDBVisitor(req.ByLongestChain)
+	if err != nil {
+		return nil, err
+	}
+	votes, err := dbVisitor.GetProducerVotes(req.Account)
+	if err != nil {
+		return nil, err
+	}
+	info, err := dbVisitor.GetProducerVoteInfo(req.Account)
+	if err != nil {
+		return nil, err
+	}
+	return &rpcpb.GetProducerVoteInfoResponse{
+		Pubkey:     info.Pubkey,
+		Loc:        info.Loc,
+		Url:        info.URL,
+		NetId:      info.NetID,
+		IsProducer: info.IsProducer,
+		Status:     info.Status,
+		Online:     info.Online,
+		Votes:      votes.ToFloat(),
+	}, nil
+}
+
 // GetContractStorage returns contract storage corresponding to the given key and field.
 func (as *APIService) GetContractStorage(ctx context.Context, req *rpcpb.GetContractStorageRequest) (*rpcpb.GetContractStorageResponse, error) {
 	dbVisitor, bcn, err := as.getStateDBVisitor(req.ByLongestChain)
@@ -471,6 +491,9 @@ func (as *APIService) SendTransaction(ctx context.Context, req *rpcpb.Transactio
 
 // ExecTransaction executes a transaction by the node and returns the receipt.
 func (as *APIService) ExecTransaction(ctx context.Context, req *rpcpb.TransactionRequest) (*rpcpb.TxReceipt, error) {
+	if !as.bv.Config().RPC.ExecTx {
+		return nil, errors.New("The node has't enabled this method")
+	}
 	t := toCoreTx(req)
 	receipt, err := as.tryTransaction(t)
 	if err != nil {
