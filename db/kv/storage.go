@@ -91,13 +91,13 @@ func NewStorage(path string, t StorageType) (*Storage, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &Storage{StorageBackend: sb}, nil
+		return &Storage{StorageBackend: sb, path: path}, nil
 	default:
 		sb, err := leveldb.NewDB(path)
 		if err != nil {
 			return nil, err
 		}
-		return &Storage{StorageBackend: sb}, nil
+		return &Storage{StorageBackend: sb, path: path}, nil
 	}
 }
 
