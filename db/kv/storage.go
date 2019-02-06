@@ -2,6 +2,11 @@ package kv
 
 import (
 	"github.com/iost-official/go-iost/db/kv/leveldb"
+	"github.com/iost-official/go-iost/metrics"
+)
+
+var (
+	dbMetrics = metrics.NewCounter("iost_db_qps", []string{"path", "func"})
 )
 
 // StorageType is the type of storage, include leveldb and rocksdb
@@ -30,6 +35,52 @@ type StorageBackend interface {
 // Storage is a kv database
 type Storage struct {
 	StorageBackend
+	path string
+}
+
+func (s *Storage) Get(key []byte) ([]byte, error) {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "get"})
+	return s.StorageBackend.Get(key)
+}
+
+func (s *Storage) Put(key []byte, value []byte) error {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "put"})
+	return s.StorageBackend.Put(key, value)
+}
+
+func (s *Storage) Has(key []byte) (bool, error) {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "has"})
+	return s.StorageBackend.Has(key)
+}
+
+func (s *Storage) Delete(key []byte) error {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "delete"})
+	return s.StorageBackend.Delete(key)
+}
+
+func (s *Storage) Keys(prefix []byte) ([][]byte, error) {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "keys"})
+	return s.StorageBackend.Keys(prefix)
+}
+
+func (s *Storage) BeginBatch() error {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "begin_batch"})
+	return s.StorageBackend.BeginBatch()
+}
+
+func (s *Storage) CommitBatch() error {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "commit_batch"})
+	return s.StorageBackend.CommitBatch()
+}
+
+func (s *Storage) Size() (int64, error) {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "size"})
+	return s.StorageBackend.Size()
+}
+
+func (s *Storage) Close() error {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "close"})
+	return s.StorageBackend.Close()
 }
 
 // NewStorage return the storage of the specify type
@@ -52,6 +103,7 @@ func NewStorage(path string, t StorageType) (*Storage, error) {
 
 // NewIteratorByPrefix returns a new iterator by prefix
 func (s *Storage) NewIteratorByPrefix(prefix []byte) *Iterator {
+	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "iter"})
 	ib := s.StorageBackend.NewIteratorByPrefix(prefix).(IteratorBackend)
 	return &Iterator{
 		IteratorBackend: ib,
