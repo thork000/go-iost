@@ -2,6 +2,7 @@ package kv
 
 import (
 	"github.com/iost-official/go-iost/db/kv/leveldb"
+	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/metrics"
 )
 
@@ -40,6 +41,7 @@ type Storage struct {
 
 func (s *Storage) Get(key []byte) ([]byte, error) {
 	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "get"})
+	ilog.Debugln("dbget key:", string(key))
 	return s.StorageBackend.Get(key)
 }
 
