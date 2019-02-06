@@ -1,6 +1,8 @@
 package kv
 
 import (
+	"strings"
+
 	"github.com/iost-official/go-iost/db/kv/leveldb"
 	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/metrics"
@@ -47,6 +49,7 @@ func (s *Storage) Get(key []byte) ([]byte, error) {
 
 func (s *Storage) Put(key []byte, value []byte) error {
 	dbMetrics.Add(1, map[string]string{"path": s.path, "func": "put"})
+	ilog.Debugf("dbput key=%s, val=%s", string(key), string(value))
 	return s.StorageBackend.Put(key, value)
 }
 
@@ -87,19 +90,21 @@ func (s *Storage) Close() error {
 
 // NewStorage return the storage of the specify type
 func NewStorage(path string, t StorageType) (*Storage, error) {
+	i := strings.LastIndex(path, "/")
+	shortPath := path[i+1:]
 	switch t {
 	case LevelDBStorage:
 		sb, err := leveldb.NewDB(path)
 		if err != nil {
 			return nil, err
 		}
-		return &Storage{StorageBackend: sb, path: path}, nil
+		return &Storage{StorageBackend: sb, path: shortPath}, nil
 	default:
 		sb, err := leveldb.NewDB(path)
 		if err != nil {
 			return nil, err
 		}
-		return &Storage{StorageBackend: sb, path: path}, nil
+		return &Storage{StorageBackend: sb, path: shortPath}, nil
 	}
 }
 
