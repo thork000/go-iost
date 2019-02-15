@@ -55,9 +55,11 @@ func (t *ITest) GetClients() []*Client {
 	return t.clients
 }
 
-// GetRandomClient returns a random client.
-func (t *ITest) GetRandomClient() *Client {
-	return t.GetClients()[rand.Intn(len(t.GetClients()))]
+// GetRandClient return a random client
+func (t *ITest) GetRandClient() *Client {
+	cIndex := rand.Intn(len(t.clients))
+	client := t.clients[cIndex]
+	return client
 }
 
 // Load will load the itest from file
