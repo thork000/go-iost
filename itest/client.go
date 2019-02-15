@@ -400,7 +400,7 @@ func (c *Client) SetContract(creator *Account, contract *Contract) (string, erro
 
 // ExecTx call ExecTransaction grpc API.
 func (c *Client) ExecTx(transaction *Transaction) (*Receipt, error) {
-	grpc, err := c.getGRPC()
+	grpc, err := c.GetGRPC()
 	if err != nil {
 		return nil, err
 	}

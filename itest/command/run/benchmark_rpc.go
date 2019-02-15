@@ -3,9 +3,10 @@ package run
 import (
 	"context"
 	"fmt"
-	"github.com/iost-official/go-iost/rpc/pb"
 	"math/rand"
 	"time"
+
+	"github.com/iost-official/go-iost/rpc/pb"
 
 	"github.com/iost-official/go-iost/ilog"
 	"github.com/iost-official/go-iost/itest"
@@ -82,15 +83,15 @@ func loopGetStorage(it *itest.ITest, interval float64) {
 		r := rand.Intn(5)
 		var err error
 		if r == 0 {
-			_, _, _, err = c.GetContractStorage("bonus.iost", "blockContrib", "")
+			_, _, _, err = c.GetContractStorage("bonus.iost", "blockContrib", "", false)
 		} else if r == 1 {
-			_, _, _, err = c.GetContractStorage("ram.iost", "leftSpace", "")
+			_, _, _, err = c.GetContractStorage("ram.iost", "leftSpace", "", false)
 		} else if r == 2 {
-			_, _, _, err = c.GetContractStorage("token.iost", "TIiost", "totalSupply")
+			_, _, _, err = c.GetContractStorage("token.iost", "TIiost", "totalSupply", false)
 		} else if r == 3 {
-			_, _, _, err = c.GetContractStorage("token.iost", "TBadmin", "iost")
+			_, _, _, err = c.GetContractStorage("token.iost", "TBadmin", "iost", false)
 		} else if r == 4 {
-			_, _, _, err = c.GetContractStorage("vote_producer.iost", "producerTable", "admin")
+			_, _, _, err = c.GetContractStorage("vote_producer.iost", "producerTable", "admin", false)
 		}
 		if err != nil {
 			ilog.Errorf("cannot get contract storage %v", err)

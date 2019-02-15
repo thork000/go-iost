@@ -101,7 +101,7 @@ func (vm *VoteManager) stop() {
 // getVotes gets a voter's votes map.
 func (vm *VoteManager) getVotes(voterID string) (map[string]int64, error) {
 	ret := make(map[string]int64)
-	data, _, _, err := vm.it.GetRandomClient().GetContractStorage("vote.iost", "u_1", voterID, true)
+	data, _, _, err := vm.it.GetRandClient().GetContractStorage("vote.iost", "u_1", voterID, true)
 	if err != nil {
 		return nil, fmt.Errorf("calling GetContractStorage failed. %v", err)
 	}
@@ -130,7 +130,7 @@ func (vm *VoteManager) getVotes(voterID string) (map[string]int64, error) {
 
 // getReceivedVotes gets a candidate's received votes.
 func (vm *VoteManager) getReceivedVotes(accID string) (int64, error) {
-	data, _, _, err := vm.it.GetRandomClient().GetContractStorage("vote.iost", "v_1", accID, true)
+	data, _, _, err := vm.it.GetRandClient().GetContractStorage("vote.iost", "v_1", accID, true)
 	if err != nil {
 		return 0, fmt.Errorf("calling GetContractStorage failed. %v", err)
 	}
@@ -164,11 +164,11 @@ func (vm *VoteManager) getAvailableBonus(acc *itest.Account, isCandidate bool) (
 	if err != nil {
 		return 0, fmt.Errorf("sign tx failed. %v", err)
 	}
-	hash, err := vm.it.GetRandomClient().SendTransaction(trx, false)
+	hash, err := vm.it.GetRandClient().SendTransaction(trx, false)
 	if err != nil {
 		return 0, fmt.Errorf("send tx failed. %v", err)
 	}
-	_, receipt, err := vm.it.GetRandomClient().CheckTransactionWithTimeout(hash, time.Now().Add(time.Second*80))
+	_, receipt, err := vm.it.GetRandClient().CheckTransactionWithTimeout(hash, time.Now().Add(time.Second*80))
 	if len(receipt.Returns) == 0 {
 		return 0, fmt.Errorf("no return from %s ABI. receipt=%+v", abi, *receipt)
 	}
@@ -279,7 +279,7 @@ func (vm *VoteManager) checkTxLoop() {
 				case <-vm.quitCh:
 					return
 				case item := <-vm.hashCh:
-					t, _, err := vm.it.GetRandomClient().CheckTransactionWithTimeout(item.hash, item.expire)
+					t, _, err := vm.it.GetRandClient().CheckTransactionWithTimeout(item.hash, item.expire)
 					if err != nil {
 						ilog.Errorf("check transaction failed, txHash=%v, err=%v", item.hash, err)
 						continue
