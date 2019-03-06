@@ -2,5 +2,5 @@ package common
 
 // const versions vs height
 const (
-	Ver3_0_3 = 157800
+	Ver3_0_3 = 159000
 )
